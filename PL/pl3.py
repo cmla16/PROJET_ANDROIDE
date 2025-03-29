@@ -10,27 +10,18 @@ model = Model("Attribution en Master")
 
 #------------------------------------- Variables de décision -------------------------------------#
 
-x = {}
-# Ajouter les variables pour les UE obligatoires
-x.update({(e, u): model.addVar(vtype=GRB.BINARY, name=f"x_{e}_{u}")
-          for e, _ in ue_obligatoires.items() for u in ue_obligatoires[e]})
-# Ajouter les variables pour les préférences des étudiants
-x.update({(e, u): model.addVar(vtype=GRB.BINARY, name=f"x_{e}_{u}")
-          for e, _ in ue_preferences.items() for u in ue_preferences[e]})
+# Ajouter les variables pour les UE obligatoires et de préférences
+x = {(e, u): model.addVar(vtype=GRB.BINARY, name=f"x_{e}_{u}")
+        for e in parcours for u in (ue_obligatoires[e] + ue_preferences[e])}
 
-y = {}
-y.update({(e, u, g): model.addVar(vtype=GRB.BINARY, name=f"y_{e}_{u}_{g}")
-            for e, _ in ue_obligatoires.items() for u in ue_obligatoires[e] if u in groupes_td for g in groupes_td[u]})
-y.update({(e, u, g): model.addVar(vtype=GRB.BINARY, name=f"y_{e}_{u}_{g}")
-            for e, _ in ue_preferences.items() for u in ue_preferences[e] if u in groupes_td for g in groupes_td[u]})
+y = {(e, u, g): model.addVar(vtype=GRB.BINARY, name=f"y_{e}_{u}_{g}")
+        for e in parcours for u in (ue_obligatoires[e] + ue_preferences[e]) for g in groupes_td[u]}
 
-z = {}
-z.update({e: model.addVar(vtype=GRB.BINARY, name=f"z_{e}")
-            for e in parcours})
+z = {e: model.addVar(vtype=GRB.BINARY, name=f"z_{e}")
+        for e in parcours}
 
-ec = {}
-ec.update({e: model.addVar(vtype=GRB.INTEGER, name=f"ec_{e}")
-            for e in parcours})
+ec = {e: model.addVar(vtype=GRB.INTEGER, name=f"ec_{e}")
+        for e in parcours}
 
 
 """

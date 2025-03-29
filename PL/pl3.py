@@ -42,7 +42,7 @@ for e in parcours:
 
 # Contrainte: chaque étudiant doit avoir au plus 30 ECTS
 for e in parcours:
-    model.addConstr(sum(ects[u] * x[e, u] + ec[e] for u in (ue_obligatoires[e] + ue_preferences[e])) == sum(ects[ue] for ue in (ue_obligatoires[e]+ue_cons[e])), name=f"ects_{e}")
+    model.addConstr(sum(ects[u] * x[e, u] for u in (ue_obligatoires[e] + ue_preferences[e])) + ec[e] == sum(ects[ue] for ue in (ue_obligatoires[e]+ue_cons[e])), name=f"ects_{e}")
 
 # Contrainte: UEs obligatoires
 for e in parcours:

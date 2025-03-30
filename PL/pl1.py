@@ -79,6 +79,12 @@ for e in parcours:
             name=f"ue_hors_parcours_{e}"
         )
 
+    if parcours[e] == "SESI":
+        model.addConstr(
+            sum(x[e, u] for u in ["multi", "multi_en"] if u in ue_preferences[e]) <= 1,
+            name=f"multi_et_multi_en_incomp_{e}"
+            )
+
 
 
 # Résolution
@@ -104,17 +110,17 @@ if model.status == GRB.OPTIMAL:
                                 print(f"    -> Groupe {g}")
 
 
-# Initialiser un dictionnaire pour compter le nombre d'étudiants par groupe de TD pour chaque UE
-compte_groupes_td_ue = {(u, g): 0 for e in parcours for u in (ue_obligatoires[e] + ue_preferences[e]) if u in groupes_td for g in groupes_td[u]}
+    # Initialiser un dictionnaire pour compter le nombre d'étudiants par groupe de TD pour chaque UE
+    compte_groupes_td_ue = {(u, g): 0 for e in parcours for u in (ue_obligatoires[e] + ue_preferences[e]) if u in groupes_td for g in groupes_td[u]}
 
-# Comptabiliser les étudiants dans chaque groupe de TD pour chaque UE
-for e in parcours:
-    for u in (ue_obligatoires[e] + ue_preferences[e]):
-        if u in groupes_td:
-            for g in groupes_td[u]:
-                if (e, u, g) in y and y[e, u, g].x > 0.5:  # Si l'étudiant e est dans le groupe g pour l'UE u
-                    compte_groupes_td_ue[(u, g)] += 1
+    # Comptabiliser les étudiants dans chaque groupe de TD pour chaque UE
+    for e in parcours:
+        for u in (ue_obligatoires[e] + ue_preferences[e]):
+            if u in groupes_td:
+                for g in groupes_td[u]:
+                    if (e, u, g) in y and y[e, u, g].x > 0.5:  # Si l'étudiant e est dans le groupe g pour l'UE u
+                        compte_groupes_td_ue[(u, g)] += 1
 
-# Afficher le nombre d'étudiants dans chaque groupe de TD pour chaque UE
-for (u, g), count in compte_groupes_td_ue.items():
-    print(f"UE {u} - Groupe {g} : {count} étudiant(s)")
+    # Afficher le nombre d'étudiants dans chaque groupe de TD pour chaque UE
+    for (u, g), count in compte_groupes_td_ue.items():
+        print(f"UE {u} - Groupe {g} : {count} étudiant(s)")

@@ -1,0 +1,21 @@
+# Fichiers système et caches
+.DS_Store
+Thumbs.db
+
+# Environnements virtuels
+.venv/
+venv/
+
+# Fichiers spécifiques à l'éditeur
+*.swp
+.vscode/
+.idea/
+
+# Dépendances Python (si applicable)
+__pycache__/
+*.pyc
+*.pyo
+
+# Fichiers de verrouillage temporaires
+.~lock*
+

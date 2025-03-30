@@ -1,0 +1,32 @@
+\ Model Attribution en Master_copy
+\ LP format - for model browsing. Use MPS format to capture full model detail.
+\ Signature: 0xc5d20fff4e28dd1d
+Minimize
+ 
+Subject To
+ ects_102: 3 x_102_anglais + 6 x_102_projet(6) + 6 x_102_ig3d + 3 x_102_mll
+   + 3 x_102_anum + 6 x_102_ml + 6 x_102_arob + 6 x_102_ihm + 6 x_102_dalas
+   + 6 x_102_rital = 30
+ ue_obligatoire_102_ig3d: x_102_ig3d = 1
+ incompatibilite_cm_102_ig3d_ihm: x_102_ig3d + x_102_ihm <= 1
+ incompatibilite_cm_102_ml_mll: x_102_mll + x_102_ml <= 1
+ td_choix_102_ig3d: - x_102_ig3d + y_102_ig3d_td1 = 0
+ td_choix_102_arob: - x_102_arob + y_102_arob_td1 + y_102_arob_td2 = 0
+ td_choix_102_dalas: - x_102_dalas + y_102_dalas_td1 + y_102_dalas_td2 = 0
+ td_choix_102_rital: - x_102_rital + y_102_rital_td1 = 0
+ incompatibilite_td_102_arob_td1_ig3d_td1: y_102_ig3d_td1 + y_102_arob_td1
+   <= 1
+ incompatibilite_td_102_arob_td2_ig3d_td1: y_102_ig3d_td1 + y_102_arob_td2
+   <= 1
+ incompatibilite_td_102_ig3d_td1_rital_td1: y_102_ig3d_td1
+   + y_102_rital_td1 <= 1
+ incompatibilite_td_cm_102_anum_cm_dalas_td1: x_102_anum + y_102_dalas_td1
+   <= 1
+ incompatibilite_td_cm_102_anum_cm_dalas_td2: x_102_anum + y_102_dalas_td2
+   <= 1
+Bounds
+Binaries
+ x_102_anglais x_102_projet(6) x_102_ig3d x_102_mll x_102_anum x_102_ml
+ x_102_arob x_102_ihm x_102_dalas x_102_rital y_102_ig3d_td1 y_102_arob_td1
+ y_102_arob_td2 y_102_dalas_td1 y_102_dalas_td2 y_102_rital_td1
+End

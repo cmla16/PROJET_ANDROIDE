@@ -87,6 +87,7 @@ for e in parcours:
 
 
 
+
 # Résolution
 model.optimize()
 model.write("model_debug.lp")

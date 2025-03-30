@@ -97,6 +97,8 @@ for e in parcours:
 
 
 
+
+
 # Résolution
 model.optimize()
 model.write("model_debug.lp")
@@ -146,5 +148,6 @@ if model.status == GRB.OPTIMAL:
 
             count_etu+=1
             print(f"L'étudiant {e} n'a pas d'edt valide : {int(nb_ects)} ECTS")
+
 
     print(f"Nombre total d'étudiants sans edt : {count_etu}")

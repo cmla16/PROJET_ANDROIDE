@@ -1,7 +1,7 @@
 from gurobipy import Model, GRB
 from data import *
 
-parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours = data("./../data/voeux2024_v5.csv", "./../data/EDT_M1S2_2024_v6_avec_ects.csv", "./../data/ues_parcours.csv", "./../data/nb_ue_hors_parcours.csv")
+parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours, ue_incompatibles = data("./../data/voeux2024_v5.csv", "./../data/EDT_M1S2_2024_v6_avec_ects.csv", "./../data/ues_parcours.csv", "./../data/nb_ue_hors_parcours.csv", "./../data/ue_incompatibles.csv")
 
 
 
@@ -79,11 +79,9 @@ for e in parcours:
                 name=f"ue_hors_parcours_{e}"
             )
     
-    if parcours[e] == "SESI":
-        model.addConstr(
-            sum(x[e, u] for u in ["multi", "multi_en"] if u in ue_preferences[e]) <= 1,
-            name=f"multi_et_multi_en_incomp_{e}"
-            )
+    for u1, u2 in ue_incompatibles:
+        if u1 in (ue_obligatoires[e] + ue_preferences[e]) and u2 in (ue_obligatoires[e] + ue_preferences[e]):
+            model.addConstr(x[e, u1] + x[e, u2] <= 1, name=f"incompatibilite_ue_{e}_{u1}_{u2}")
 
 
 

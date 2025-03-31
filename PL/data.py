@@ -1,11 +1,12 @@
 import pandas as pd
 
-def data(path1, path2, path3, path4):
+def data(path1, path2, path3, path4, path5):
     #datasets
     df = pd.read_csv(path1)
     df2 = pd.read_csv(path2)
     df3 = pd.read_csv(path3)
     df4 = pd.read_csv(path4)
+    df5 = pd.read_csv(path5)
 
     # etu: parcours
     parcours = {num: parcours for num, parcours in zip(df["num"], df["parcours"])}
@@ -101,6 +102,13 @@ def data(path1, path2, path3, path4):
                         incompatibilites_cm.append((ue_i, ue_j))
 
     print("\n\nincompatibilites_cm:\n", incompatibilites_cm)
+
+    ue_incompatibles = [
+        (row['ue1'], row['ue2'])
+        for _, row in df5.iterrows()
+    ]
+    print("\n\nue_incompatibles:\n", ue_incompatibles)
+
 
 
     # Initialisation du dictionnaire des groupes TD
@@ -210,7 +218,7 @@ def data(path1, path2, path3, path4):
 
 
 
-    return parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours
+    return parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours, ue_incompatibles
 
 
-data("./../data/voeux2024_v4.csv", "./../data/EDT_M1S2_2024_v6_avec_ects.csv", "./../data/ues_parcours.csv", "./../data/nb_ue_hors_parcours.csv")
+data("./../data/voeux2024_v4.csv", "./../data/EDT_M1S2_2024_v6_avec_ects.csv", "./../data/ues_parcours.csv", "./../data/nb_ue_hors_parcours.csv", "./../data/ue_incompatibles.csv")

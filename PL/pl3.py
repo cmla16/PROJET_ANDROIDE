@@ -89,11 +89,9 @@ for e in parcours:
                 name=f"ue_hors_parcours_{e}"
             )
     
-    if parcours[e] == "SESI":
-        model.addConstr(
-            sum(x[e, u] for u in ["multi", "multi_en"] if u in ue_preferences[e]) <= 1,
-            name=f"multi_et_multi_en_incomp_{e}"
-            )
+    for u1, u2 in ue_incompatibles:
+        if u1 in (ue_obligatoires[e] + ue_preferences[e]) and u2 in (ue_obligatoires[e] + ue_preferences[e]):
+            model.addConstr(x[e, u1] + x[e, u2] <= 1, name=f"incompatibilite_ue_{e}_{u1}_{u2}")
 
 
 

@@ -91,11 +91,11 @@ for (u, g), cap in capacite_td.items():
 
 
 #Contraintes/ parcours
-# contrainte : au plus une ue hors parcours pour les étudiants en ANDROIDE
+# contrainte : au plus nb ue hors parcours et ue incompatibles
 for e in parcours:
     if parcours[e] in nb_ue_hors_parcours:
         model.addConstr(
-                sum(x[e, u] for u in ue_preferences[e] if u not in ue_parcours["ANDROIDE"]) <= nb_ue_hors_parcours[parcours[e]],
+                sum(x[e, u] for u in ue_preferences[e] if u not in ue_parcours[parcours[e]]) <= nb_ue_hors_parcours[parcours[e]],
                 name=f"ue_hors_parcours_{e}"
             )
     

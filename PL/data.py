@@ -1,10 +1,11 @@
 import pandas as pd
 
-def data(path1, path2, path3):
+def data(path1, path2, path3, path4):
     #datasets
     df = pd.read_csv(path1)
     df2 = pd.read_csv(path2)
     df3 = pd.read_csv(path3)
+    df4 = pd.read_csv(path4)
 
     # etu: parcours
     parcours = {num: parcours for num, parcours in zip(df["num"], df["parcours"])}
@@ -199,7 +200,17 @@ def data(path1, path2, path3):
     # Afficher le résultat
     print("\n\ncapacite_td:\n", capacite_td)
 
-    return parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td
+    # Création du dictionnaire sans les NaN
+    nb_ue_hors_parcours = {
+        row['parcours']: row['nb_ue_hors_parcours']
+        for _, row in df4.dropna(subset=['nb_ue_hors_parcours']).iterrows()
+    }
+
+    print("\n\nnb ue hors parcours autorisé (sans NaN):\n", nb_ue_hors_parcours)
 
 
-data("./../data/voeux2024_v4.csv", "./../data/EDT_M1S2_2024_v6_avec_ects.csv", "./../data/ues_parcours.csv")
+
+    return parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours
+
+
+data("./../data/voeux2024_v4.csv", "./../data/EDT_M1S2_2024_v6_avec_ects.csv", "./../data/ues_parcours.csv", "./../data/nb_ue_hors_parcours.csv")

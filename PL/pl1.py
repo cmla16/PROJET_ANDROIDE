@@ -1,7 +1,7 @@
 from gurobipy import Model, GRB
 from data import *
 
-parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td = data("./../data/voeux2024_v4.csv", "./../data/EDT_M1S2_2024_v6_avec_ects.csv", "./../data/ues_parcours.csv")
+parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours = data("./../data/voeux2024_v5.csv", "./../data/EDT_M1S2_2024_v6_avec_ects.csv", "./../data/ues_parcours.csv", "./../data/nb_ue_hors_parcours.csv")
 
 
 
@@ -73,11 +73,11 @@ for (u, g), cap in capacite_td.items():
 #Contraintes/ parcours
 # contrainte : au plus une ue hors parcours pour les étudiants en ANDROIDE
 for e in parcours:
-    if parcours[e] == "ANDROIDE":
+    if parcours[e] in nb_ue_hors_parcours:
         model.addConstr(
-            sum(x[e, u] for u in ue_preferences[e] if u not in ue_parcours["ANDROIDE"]) <= 1,
-            name=f"ue_hors_parcours_{e}"
-        )
+                sum(x[e, u] for u in ue_preferences[e] if u not in ue_parcours["ANDROIDE"]) <= nb_ue_hors_parcours[parcours[e]],
+                name=f"ue_hors_parcours_{e}"
+            )
     
     if parcours[e] == "SESI":
         model.addConstr(

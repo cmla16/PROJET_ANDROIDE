@@ -10,7 +10,7 @@ Ce projet vise à développer un algorithme d'optimisation multicritère pour l'
 ## Objectifs
 - Minimiser le nombre d'étudiants sans emploi du temps valide.
 - Minimiser le nombre d'étudiants n'obtenant pas les UE de leur parcours.
-- Minimiser le rang des préférences des étudiants.
+- Minimiser la somme des rang des préférences des étudiants.
 
 ## Outils
 - **Solveur** : Gurobi  

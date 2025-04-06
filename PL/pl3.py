@@ -1,11 +1,12 @@
 from gurobipy import Model, GRB
 from data import *
 
-parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td = data("./../data/voeux2024_v5.csv", "./../data/EDT_M1S2_2024_v6_avec_ects.csv", "./../data/ues_parcours.csv")
+parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours, ue_incompatibles = data("./../data/voeux2024_v4.csv", "./../data/EDT_M1S2_2024_v6_avec_ects.csv", "./../data/ues_parcours.csv", "./../data/nb_ue_hors_parcours.csv", "./../data/ue_incompatibles.csv")
 
 
 
 # Modèle
+# Minimiser le nombre d'étudiant sans edt
 model = Model("Attribution en Master")
 
 #------------------------------------- Variables de décision -------------------------------------#
@@ -17,9 +18,11 @@ x = {(e, u): model.addVar(vtype=GRB.BINARY, name=f"x_{e}_{u}")
 y = {(e, u, g): model.addVar(vtype=GRB.BINARY, name=f"y_{e}_{u}_{g}")
         for e in parcours for u in (ue_obligatoires[e] + ue_preferences[e]) for g in groupes_td[u]}
 
-z = {e: model.addVar(vtype=GRB.BINARY, name=f"z_{e}")
+# nombre d'étudiant sans edt
+z3 = {e: model.addVar(vtype=GRB.BINARY, name=f"z3_{e}")
         for e in parcours}
 
+# nombre d'ects manquants pour avoir un contrat valide
 ec = {e: model.addVar(vtype=GRB.INTEGER, name=f"ec_{e}")
         for e in parcours}
 
@@ -31,14 +34,14 @@ for (e, u, g), var in y.items():
 
 #------------------------------------- Fonction objectif -------------------------------------#
 
-model.setObjective(sum(z[e] for e in parcours), GRB.MINIMIZE)
+model.setObjective(sum(z3[e] for e in parcours), GRB.MINIMIZE)
 
 
 #------------------------------------- Contraintes -------------------------------------#
 
 # Contarintes:
 for e in parcours:
-    model.addConstr(ec[e] <= 30 * z[e], name=f"variable_d_ecart_e_{e}_<=_M_z_{e}")
+    model.addConstr(ec[e] <= 30 * z3[e], name=f"variable_d_ecart_e_{e}_<=_M_z3_{e}")
 
 # Contrainte: chaque étudiant doit avoir au plus 30 ECTS
 for e in parcours:
@@ -142,10 +145,10 @@ if model.status == GRB.OPTIMAL:
     for e in parcours:
         nb_ects = sum(ects[u] * x[e, u].x for u in (ue_obligatoires[e] + ue_preferences[e]))
 
-        if z[e].x>0.5:
+        if z3[e].x>0.5:
 
             count_etu+=1
-            print(f"L'étudiant {e} n'a pas d'edt valide : {int(nb_ects)} ECTS")
+            print(f"L'étudiant {e} n'a pas d'edt valide : {int(nb_ects)} ECTS et {ec[e].x} ECTS manquants")
 
 
     print(f"Nombre total d'étudiants sans edt : {count_etu}")

@@ -6,7 +6,7 @@ parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, inc
 
 
 # Modèle
-# Minimiser le nombre d'ue du parcours refusé
+# Minimiser la somme des rang
 model = Model("Attribution en Master")
 
 #------------------------------------- Variables de décision -------------------------------------#
@@ -18,10 +18,19 @@ x = {(e, u): model.addVar(vtype=GRB.BINARY, name=f"x_{e}_{u}")
 y = {(e, u, g): model.addVar(vtype=GRB.BINARY, name=f"y_{e}_{u}_{g}")
         for e in parcours for u in (ue_obligatoires[e] + ue_preferences[e]) for g in groupes_td[u]}
 
-# nombre d'ue refusé du parcours dans les premiers choix
-z2 = {e: model.addVar(vtype=GRB.INTEGER, name=f"z2_{e}")
+# variable pour normaliser
+z = {e: model.addVar(vtype=GRB.INTEGER, name=f"z_{e}") for e in parcours}
+
+# variable binaire : 1 si l'étudiant n'a pas eu au moins une ue de ses voeux, 0 sinon
+z1 = {e: model.addVar(vtype=GRB.BINARY, name=f"z1_{e}") for e in parcours}
+
+# nombre d'étudiant sans edt
+z3 = {e: model.addVar(vtype=GRB.BINARY, name=f"z3_{e}")
         for e in parcours}
 
+# nombre d'ects manquants pour avoir un contrat valide
+ec = {e: model.addVar(vtype=GRB.INTEGER, name=f"ec_{e}")
+        for e in parcours}
 
 """
 model.update()  # Si nécessaire, forcer la mise à jour du modèle
@@ -30,31 +39,34 @@ for (e, u, g), var in y.items():
 
 #------------------------------------- Fonction objectif -------------------------------------#
 
-model.setObjective(sum(z2[e] for e in parcours), GRB.MINIMIZE)
+model.setObjective(sum(z[e] for e in parcours), GRB.MINIMIZE)
 
 
 #------------------------------------- Contraintes -------------------------------------#
 
-# Contrainte sur z 
+# contraintes normalisation
 for e in parcours:
-    nb = 0
-    first = []
-
-    for u in (ue_obligatoires[e] + ue_preferences[e]):
-        if nb == sum(ects[ue] for ue in (ue_obligatoires[e]+ue_cons[e])):
-            break
-        elif u in ue_parcours[parcours[e]]:
-            first.append(u)
-        nb = nb+ects[u]
-
-    print(first)
-
-    model.addConstr(z2[e]==len(first)-sum(x[e,u] for u in first), name=f"nb_ue_parcours_refusée_{e}")
+    model.addConstr(z[e] >= sum(z1[e] for e in parcours), name=f"linearisation_z1")
+    model.addConstr(z[e] >= sum(z3[e] for e in parcours), name=f"linearisation_z3")
     
+# contrainte pour définir z1
+for e in parcours:
+    if ue_cons[e]:  # éviter les cas où ue_cons[e] est vide
+        model.addConstr(z1[e] >= 1 - sum(x[e, u] for u in ue_cons[e]) / len(ue_cons[e]), name=f"z1_def_{e}")
 
+# Contarintes z3:
+for e in parcours:
+    model.addConstr(ec[e] <= 30 * z3[e], name=f"variable_d_ecart_e_{e}_<=_M_z3_{e}")
+
+
+for e in parcours:
+    model.addConstr(sum(ects[u] * x[e, u] for u in (ue_obligatoires[e] + ue_preferences[e])) + ec[e] == sum(ects[ue] for ue in (ue_obligatoires[e] + ue_cons[e])) - (3 if parcours[e] == "IMA" else 0), name=f"ects_{e}")
+
+"""
 # Contrainte: chaque étudiant doit avoir au plus 30 ECTS
 for e in parcours:
     model.addConstr(sum(ects[u] * x[e, u] for u in (ue_obligatoires[e] + ue_preferences[e])) == sum(ects[ue] for ue in (ue_obligatoires[e] + ue_cons[e])) - (3 if parcours[e] == "IMA" else 0), name=f"ects_{e}")
+"""
 
 # Contrainte: UEs obligatoires
 for e in parcours:
@@ -107,6 +119,7 @@ for e in parcours:
 
 
 
+
 # Résolution
 model.optimize()
 model.write("model_debug.lp")
@@ -145,13 +158,24 @@ if model.status == GRB.OPTIMAL:
     for (u, g), count in compte_groupes_td_ue.items():
         print(f"UE {u} - Groupe {g} : {count} étudiant(s)")
 
-    #Affiche nb ue du parcours refusé 
+    
+    # récupérer les étudiants qui n'ont pas eu au moins une ue de ue_cons
+    etu_non_satisfaits = [e for e in parcours if z1[e].x > 0.5]
+
+    print(f"Nombre d'étudiants qui n'ont pas eu au moins une ue de leurs cons : {len(etu_non_satisfaits)}")
+    print("Étudiants concernés :", etu_non_satisfaits)
+
+    #Affiche les étudiants sans EDT valide 
 
     count_etu=0
 
     for e in parcours:
-        if z2[e].x>0.5:
-            count_etu+=1
-            print(f"L'étudiant {e} n'a pas eu au moins une ue de parcours dans ses premiers voeux")
+        nb_ects = sum(ects[u] * x[e, u].x for u in (ue_obligatoires[e] + ue_preferences[e]))
 
-    print(f"Nombre total d'étudiants : {count_etu}")
+        if z3[e].x>0.5:
+
+            count_etu+=1
+            print(f"L'étudiant {e} n'a pas d'edt valide : {int(nb_ects)} ECTS et {ec[e].x} ECTS manquants")
+
+
+    print(f"Nombre total d'étudiants sans edt : {count_etu}")

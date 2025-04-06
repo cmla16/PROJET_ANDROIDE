@@ -6,7 +6,7 @@ parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, inc
 
 
 # Modèle
-# Minimiser le nombre d'ue du parcours refusé
+# Minimiser la somme des rang
 model = Model("Attribution en Master")
 
 #------------------------------------- Variables de décision -------------------------------------#
@@ -18,10 +18,8 @@ x = {(e, u): model.addVar(vtype=GRB.BINARY, name=f"x_{e}_{u}")
 y = {(e, u, g): model.addVar(vtype=GRB.BINARY, name=f"y_{e}_{u}_{g}")
         for e in parcours for u in (ue_obligatoires[e] + ue_preferences[e]) for g in groupes_td[u]}
 
-# nombre d'ue refusé du parcours dans les premiers choix
-z2 = {e: model.addVar(vtype=GRB.INTEGER, name=f"z2_{e}")
-        for e in parcours}
-
+# variable binaire : 1 si l'étudiant n'a pas eu au moins une ue de ses voeux, 0 sinon
+z1 = {e: model.addVar(vtype=GRB.BINARY, name=f"z1_{e}") for e in parcours}
 
 """
 model.update()  # Si nécessaire, forcer la mise à jour du modèle
@@ -30,27 +28,15 @@ for (e, u, g), var in y.items():
 
 #------------------------------------- Fonction objectif -------------------------------------#
 
-model.setObjective(sum(z2[e] for e in parcours), GRB.MINIMIZE)
+model.setObjective(sum(z1[e] for e in parcours), GRB.MINIMIZE)
 
 
 #------------------------------------- Contraintes -------------------------------------#
 
-# Contrainte sur z 
+# contrainte pour définir z1_e
 for e in parcours:
-    nb = 0
-    first = []
-
-    for u in (ue_obligatoires[e] + ue_preferences[e]):
-        if nb == sum(ects[ue] for ue in (ue_obligatoires[e]+ue_cons[e])):
-            break
-        elif u in ue_parcours[parcours[e]]:
-            first.append(u)
-        nb = nb+ects[u]
-
-    print(first)
-
-    model.addConstr(z2[e]==len(first)-sum(x[e,u] for u in first), name=f"nb_ue_parcours_refusée_{e}")
-    
+    if ue_cons[e]:  # éviter les cas où ue_cons[e] est vide
+        model.addConstr(z1[e] >= 1 - sum(x[e, u] for u in ue_cons[e]) / len(ue_cons[e]), name=f"z1_def_{e}")
 
 # Contrainte: chaque étudiant doit avoir au plus 30 ECTS
 for e in parcours:
@@ -107,6 +93,7 @@ for e in parcours:
 
 
 
+
 # Résolution
 model.optimize()
 model.write("model_debug.lp")
@@ -145,13 +132,9 @@ if model.status == GRB.OPTIMAL:
     for (u, g), count in compte_groupes_td_ue.items():
         print(f"UE {u} - Groupe {g} : {count} étudiant(s)")
 
-    #Affiche nb ue du parcours refusé 
+    
+    # récupérer les étudiants qui n'ont pas eu au moins une ue de ue_cons
+    etu_non_satisfaits = [e for e in parcours if z1[e].x > 0.5]
 
-    count_etu=0
-
-    for e in parcours:
-        if z2[e].x>0.5:
-            count_etu+=1
-            print(f"L'étudiant {e} n'a pas eu au moins une ue de parcours dans ses premiers voeux")
-
-    print(f"Nombre total d'étudiants : {count_etu}")
+    print(f"Nombre d'étudiants qui n'ont pas eu au moins une ue de leurs cons : {len(etu_non_satisfaits)}")
+    print("Étudiants concernés :", etu_non_satisfaits)

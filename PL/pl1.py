@@ -6,6 +6,7 @@ parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, inc
 
 
 # Modèle
+# Minimiser la somme des rang
 model = Model("Attribution en Master")
 
 #------------------------------------- Variables de décision -------------------------------------#

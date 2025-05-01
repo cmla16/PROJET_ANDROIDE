@@ -147,10 +147,7 @@ def mono1_nbEtu_voeux_insatisfaits(path1, path2, path3, path4, path5):
         
         print(f"Valeur de la fonction objectif {nb_etu}")
     
-    if model.ObjVal:
-        return model.ObjVal
-    else:
-        return None
+    return model.ObjVal
 
 if __name__ == "__main__":
     mono1_nbEtu_voeux_insatisfaits(

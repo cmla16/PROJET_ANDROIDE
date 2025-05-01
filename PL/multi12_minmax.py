@@ -1,5 +1,5 @@
 from gurobipy import Model, GRB
-from data import *
+from data import data
 
 def multi12_minmax(path1, path2, path3, path4, path5):
 
@@ -176,7 +176,7 @@ def multi12_minmax(path1, path2, path3, path4, path5):
                 nb_etu += 1
                 print(f"L'étudiant {e} n'a pas eu au moins une UE dans ses premiers choix.")
         
-        print(f"Valeur de la fonction objectif {nb_etu}")
+        print(f"Valeur de la fonction objectif 1 : {nb_etu}")
 
         #Affiche nb ue du parcours refusé 
         count_etu=0
@@ -186,9 +186,9 @@ def multi12_minmax(path1, path2, path3, path4, path5):
                 count_etu+=1
                 print(f"L'étudiant {e} n'a pas eu au moins une ue de parcours dans ses premiers voeux")
 
-        print(f"Valeur de la fonction objectif {count_etu}")
+        print(f"Valeur de la fonction objectif 2 : {count_etu}")
 
-        print(f"Valeur fonction objectif {z.x}")
+        print(f"Valeur fonction objectif z : {z.x}")
 
     return model.ObjVal
 

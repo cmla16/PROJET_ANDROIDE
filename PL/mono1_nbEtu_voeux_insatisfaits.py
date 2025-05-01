@@ -1,5 +1,5 @@
 from gurobipy import Model, GRB
-from data import *
+from data import data
 
 def mono1_nbEtu_voeux_insatisfaits(path1, path2, path3, path4, path5):
 
@@ -143,7 +143,7 @@ def mono1_nbEtu_voeux_insatisfaits(path1, path2, path3, path4, path5):
                 nb_etu += 1
                 print(f"L'étudiant {e} n'a pas eu au moins une UE dans ses premiers choix.")
         
-        print(f"Valeur de la fonction objectif {nb_etu}")
+        print(f"Valeur de la fonction objectif 1 : {nb_etu}")
     
     return model.ObjVal
 

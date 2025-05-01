@@ -1,5 +1,5 @@
 from gurobipy import Model, GRB
-from data import *
+from data import data
 
 def mono3_nbEtu_sans_edt(path1, path2, path3, path4, path5):
 
@@ -155,7 +155,7 @@ def mono3_nbEtu_sans_edt(path1, path2, path3, path4, path5):
                 print(f"L'étudiant {e} n'a pas d'edt valide : {int(nb_ects)} ECTS et {ec[e].x} ECTS manquants")
 
 
-        print(f"Valeur fonction objectif {count_etu}")
+        print(f"Valeur fonction objectif 3 : {count_etu}")
 
     return model.ObjVal
 

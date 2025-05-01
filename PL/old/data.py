@@ -1,6 +1,6 @@
 import pandas as pd
 
-def data(path1, path2, path3, path4, path5, verbose=False):
+def data(path1, path2, path3, path4, path5):
     #datasets
     df = pd.read_csv(path1)
     df2 = pd.read_csv(path2)
@@ -8,14 +8,9 @@ def data(path1, path2, path3, path4, path5, verbose=False):
     df4 = pd.read_csv(path4)
     df5 = pd.read_csv(path5)
 
-    def log(msg):
-        if verbose:
-            print(f"{msg}")
-
     # etu: parcours
     parcours = {num: parcours for num, parcours in zip(df["num"], df["parcours"])}
-    log("\n\nParcours des étudiants.\nparcours:\n")
-    log(parcours)
+    print("\n\nParcours des étudiants.\nparcours:\n", parcours)
 
 
     # etu, ue : rang
@@ -34,8 +29,7 @@ def data(path1, path2, path3, path4, path5, verbose=False):
         for rank, ue in enumerate(ue_choices, start=1):
             rang[(student_id, ue)] = rank
 
-    log("\n\nRand des des étudiants pour les ues.\nrang:\n")
-    log(rang)
+    print("\n\nRand des des étudiants pour les ues.\nrang:\n", rang)
 
 
     # etu: ue_obligatoire
@@ -43,16 +37,14 @@ def data(path1, path2, path3, path4, path5, verbose=False):
         row['num']: [ue for ue in [row['oblig1'], row['oblig2'], row['oblig3'], row['oblig4']] if pd.notna(ue)]
         for _, row in df.iterrows()
     }
-    log("\n\nUE obligatoires pour chaque étudiants.\nue_obligatoires:\n")
-    log(ue_obligatoires)
+    print("\n\nUE obligatoires pour chaque étudiants.\nue_obligatoires:\n", ue_obligatoires)
 
     ue_cons = {
         row['num']: [ue for i in range(1, 6) 
                     for ue in ([row[f'cons{i}']] if isinstance(row[f'cons{i}'], str) else [])]
         for _, row in df.iterrows()
     }
-    log("\n\nUE cons pour chaque étudiants.\nue_cons:\n")
-    log(ue_cons)
+    print("\n\nUE cons pour chaque étudiants.\nue_cons:\n", ue_cons)
 
 
     # etu: preferences
@@ -61,8 +53,7 @@ def data(path1, path2, path3, path4, path5, verbose=False):
                     [row[f'equiv{i}'] for i in range(1, 6) if pd.notna(row[f'equiv{i}'])]
         for _, row in df.iterrows()
     }
-    log("\n\nUE de préférences pour chaque étudiants.\nue_preferences:\n")
-    log(ue_preferences)
+    print("\n\nUE de préférences pour chaque étudiants.\nue_preferences:\n", ue_preferences)
 
 
 
@@ -77,8 +68,7 @@ def data(path1, path2, path3, path4, path5, verbose=False):
         row["parcours"]: [ue for ue in row[1:].dropna().tolist()]
         for _, row in df3.iterrows()
     }
-    log("\n\nUE de parcours pour chaque parcours.\nue_parcours:\n")
-    log(ue_parcours)
+    print("\n\nUE de parcours pour chaque parcours.\nue_parcours:\n",ue_parcours)
 
 
 
@@ -90,8 +80,7 @@ def data(path1, path2, path3, path4, path5, verbose=False):
 
     # ue: ects
     ects = {ue: ects for ue, ects in zip(df2["intitule"], df2["ects"])}
-    log("\n\nECTS de chaque UE.\nects:\n")
-    log(ects)
+    print("\n\nECTS de chaque UE.\nects:\n", ects)
 
     # Initialisation de la liste d'incompatibilités
     incompatibilites_cm = []
@@ -112,15 +101,13 @@ def data(path1, path2, path3, path4, path5, verbose=False):
                     if not cours_i.isdisjoint(cours_j):  # les sets ont au moins un cours en commun
                         incompatibilites_cm.append((ue_i, ue_j))
 
-    log("\n\nincompatibilites_cm:\n")
-    log(incompatibilites_cm)
+    print("\n\nincompatibilites_cm:\n", incompatibilites_cm)
 
     ue_incompatibles = [
         (row['ue1'], row['ue2'])
         for _, row in df5.iterrows()
     ]
-    log("\n\nue_incompatibles:\n")
-    log(ue_incompatibles)
+    print("\n\nue_incompatibles:\n", ue_incompatibles)
 
 
 
@@ -144,8 +131,7 @@ def data(path1, path2, path3, path4, path5, verbose=False):
         groupes_td[ue] = td_list
 
     # Afficher le résultat
-    log("\n\ngroupes_td:\n")
-    log(groupes_td)
+    print("\n\ngroupes_td:\n", groupes_td)
 
 
     # Initialisation de la liste des incompatibilités TD
@@ -171,8 +157,7 @@ def data(path1, path2, path3, path4, path5, verbose=False):
                                 incompatibilites_td.append((ue_i, f"td{td_i_num}", ue_j, f"td{td_j_num}"))
 
     # Affichage des incompatibilités trouvées
-    log("\n\nincompatibilites_td:\n")
-    log(incompatibilites_td)
+    print("\n\nincompatibilites_td:\n", incompatibilites_td)
 
     # liste pour stocker les incompatibilités cm/td
     incompatibilites_cm_td = []
@@ -200,8 +185,7 @@ def data(path1, path2, path3, path4, path5, verbose=False):
                                 incompatibilites_cm_td.append((ue_i, "cm", ue_j, f"tme{td_num}"))
 
     # affichage des incompatibilités trouvées
-    log("\n\nincompatibilites_cm_td:\n")
-    log(incompatibilites_cm_td)
+    print("\n\nincompatibilites_cm_td:\n", incompatibilites_cm_td)
 
     # Initialisation du dictionnaire des capacités des TDs
     capacite_td = {}
@@ -222,8 +206,7 @@ def data(path1, path2, path3, path4, path5, verbose=False):
                 capacite_td[(ue, td_name)] = capacite  # Ajouter au dictionnaire
 
     # Afficher le résultat
-    log("\n\ncapacite_td:\n")
-    log(capacite_td)
+    print("\n\ncapacite_td:\n", capacite_td)
 
     # Création du dictionnaire sans les NaN
     nb_ue_hors_parcours = {
@@ -231,18 +214,11 @@ def data(path1, path2, path3, path4, path5, verbose=False):
         for _, row in df4.dropna(subset=['nb_ue_hors_parcours']).iterrows()
     }
 
-    log("\n\nnb ue hors parcours autorisé (sans NaN):\n")
-    log(nb_ue_hors_parcours)
+    print("\n\nnb ue hors parcours autorisé (sans NaN):\n", nb_ue_hors_parcours)
+
+
 
     return parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours, ue_incompatibles
 
 
-if __name__ == "__main__":
-    data(
-        "./../data/voeux2024_v5.csv",
-        "./../data/EDT_M1S2_2024_v6_avec_ects.csv",
-        "./../data/ues_parcours.csv",
-        "./../data/nb_ue_hors_parcours.csv",
-        "./../data/ue_incompatibles.csv",
-        verbose=True
-    )
+data("./../data/voeux2024_v4.csv", "./../data/EDT_M1S2_2024_v6_avec_ects.csv", "./../data/ues_parcours.csv", "./../data/nb_ue_hors_parcours.csv", "./../data/ue_incompatibles.csv")

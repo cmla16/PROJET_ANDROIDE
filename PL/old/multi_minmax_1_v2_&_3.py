@@ -170,7 +170,7 @@ if model.status == GRB.OPTIMAL:
     for e in parcours:
         nb_ects = sum(ects[u] * x[e, u].x for u in (ue_obligatoires[e] + ue_preferences[e]))
 
-        if z3[e].x>0.5:
+        if z3[e].x>0.5 and ec[e].x != 0:
 
             count_etu+=1
             print(f"L'étudiant {e} : {int(nb_ects)} ECTS et {ec[e].x} ECTS manquants")

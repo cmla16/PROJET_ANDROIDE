@@ -35,7 +35,7 @@ def mono2_nbEtu_refus_parcours(path1, path2, path3, path4, path5):
 
     #------------------------------------- Contraintes -------------------------------------#
 
-    # Contrainte sur z 
+    # Contrainte sur z2 
     for e in parcours:
         nb = 0
         first = []
@@ -59,8 +59,6 @@ def mono2_nbEtu_refus_parcours(path1, path2, path3, path4, path5):
                 name=f"nb_ue_parcours_refusée_{e}_empty"
             )
         
-
-    #------------------------------------- Contraintes -------------------------------------#
 
     # Contrainte: chaque étudiant doit avoir au plus 30 ECTS
     for e in parcours:

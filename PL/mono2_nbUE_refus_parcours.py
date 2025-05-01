@@ -35,7 +35,7 @@ def mono2_nbUE_refus_parcours(path1, path2, path3, path4, path5):
 
     #------------------------------------- Contraintes -------------------------------------#
 
-    # Contrainte sur z 
+    # Contrainte sur z2 
     for e in parcours:
         nb = 0
         first = []

@@ -1,7 +1,7 @@
 from gurobipy import Model, GRB
 from data import *
 
-def multi123_minmax(path1, path2, path3, path4, path5):
+def multi123_minmax_13(path1, path2, path3, path4, path5):
 
     parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours, ue_incompatibles = data(path1, path2, path3, path4, path5)
 
@@ -25,10 +25,6 @@ def multi123_minmax(path1, path2, path3, path4, path5):
     # variable binaire : 1 si l'étudiant n'a pas eu au moins une ue de ses voeux, 0 sinon
     z1 = {e: model.addVar(vtype=GRB.BINARY, name=f"z1_{e}") for e in parcours}
 
-    # = 1 si etu n'obtient pas au moins une ue de parcours dans ses premiers choix
-    z2 = {e: model.addVar(vtype=GRB.BINARY, name=f"z2_{e}")
-            for e in parcours}
-
     # nombre d'étudiant sans edt
     z3 = {e: model.addVar(vtype=GRB.BINARY, name=f"z3_{e}")
             for e in parcours}
@@ -51,7 +47,6 @@ def multi123_minmax(path1, path2, path3, path4, path5):
 
     # Linéariser
     model.addConstr(z >= sum(z1[e] for e in parcours), name=f"linéariser_z1")
-    model.addConstr(z >= sum(z2[e] for e in parcours), name=f"linéariser_z2")
     model.addConstr(z >= sum(z3[e] for e in parcours), name=f"linéariser_z3")
 
 
@@ -60,27 +55,6 @@ def multi123_minmax(path1, path2, path3, path4, path5):
         if ue_cons[e]:  # éviter les cas où ue_cons[e] est vide
             model.addConstr(z1[e] >= 1 - sum(x[e, u] for u in ue_cons[e]) / len(ue_cons[e]), name=f"z1_def_{e}")
 
-    # Contrainte sur z2 
-    for e in parcours:
-        nb = 0
-        first = []
-
-        for u in (ue_obligatoires[e] + ue_preferences[e]):
-            if nb == sum(ects[ue] for ue in (ue_obligatoires[e]+ue_cons[e])):
-                break
-            elif u in ue_parcours[parcours[e]]:
-                first.append(u)
-            nb = nb+ects[u]
-
-        if len(first) > 0:
-            model.addConstr(
-            z2[e] >= 1 - (1 / len(first)) * sum(x[e, u] for u in first),name=f"nb_etu_parcours_refusée_{e}")
-
-        else:
-            model.addConstr(
-                z2[e] == 0,
-                name=f"nb_ue_parcours_refusée_{e}_empty"
-            )
 
     # Contrainte: chaque étudiant doit avoir au plus 30 ECTS (z3)
     for e in parcours:
@@ -199,16 +173,6 @@ def multi123_minmax(path1, path2, path3, path4, path5):
         
         print(f"Valeur de la fonction objectif {nb_etu}")
 
-        #Affiche nb ue du parcours refusé 
-        count_etu=0
-
-        for e in parcours:
-            if z2[e].x>0.5:
-                count_etu+=1
-                print(f"L'étudiant {e} n'a pas eu au moins une ue de parcours dans ses premiers voeux")
-
-        print(f"Valeur de la fonction objectif {count_etu}")
-
         #Affiche les étudiants sans EDT valide 
         count_etu=0
 
@@ -228,7 +192,7 @@ def multi123_minmax(path1, path2, path3, path4, path5):
     return model.ObjVal
 
 if __name__ == "__main__":
-    multi123_minmax(
+    multi123_minmax_13(
         "./../data/voeux2024_v5.csv",
         "./../data/EDT_M1S2_2024_v6_avec_ects.csv",
         "./../data/ues_parcours.csv",

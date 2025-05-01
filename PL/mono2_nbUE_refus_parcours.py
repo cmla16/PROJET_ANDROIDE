@@ -1,10 +1,9 @@
 from gurobipy import Model, GRB
 from data import *
 
-
 def mono2_nbUE_refus_parcours(path1, path2, path3, path4, path5):
 
-    parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours, ue_incompatibles = data(path1, path2, path3, path4, path5):
+    parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours, ue_incompatibles = data(path1, path2, path3, path4, path5)
 
     # Modèle
     # Minimiser le nombre d'ue refusé du parcours dans les premiers choix
@@ -165,7 +164,7 @@ def mono2_nbUE_refus_parcours(path1, path2, path3, path4, path5):
 
 if __name__ == "__main__":
     mono2_nbUE_refus_parcours(
-        "./../data/voeux2024_v5.csv",
+        "./../data/voeux2024_v4.csv",
         "./../data/EDT_M1S2_2024_v6_avec_ects.csv",
         "./../data/ues_parcours.csv",
         "./../data/nb_ue_hors_parcours.csv",

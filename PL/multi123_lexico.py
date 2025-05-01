@@ -236,7 +236,7 @@ def multi123_lexico(path1, path2, path3, path4, path5):
 
 if __name__ == "__main__":
     multi123_lexico(
-        "./../data/voeux2024_v5.csv",
+        "./../data/voeux2024_v4.csv",
         "./../data/EDT_M1S2_2024_v6_avec_ects.csv",
         "./../data/ues_parcours.csv",
         "./../data/nb_ue_hors_parcours.csv",

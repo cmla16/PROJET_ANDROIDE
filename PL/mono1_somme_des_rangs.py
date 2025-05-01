@@ -132,7 +132,7 @@ def mono1_somme_des_rangs(path1, path2, path3, path4, path5):
 
 if __name__ == "__main__":
     mono1_somme_des_rangs(
-        "./../data/voeux2024_v5.csv",
+        "./../data/voeux2024_v4.csv",
         "./../data/EDT_M1S2_2024_v6_avec_ects.csv",
         "./../data/ues_parcours.csv",
         "./../data/nb_ue_hors_parcours.csv",

@@ -1,7 +1,7 @@
 from gurobipy import Model, GRB
 from data import data
 
-def multi123_lineaire(path1, path2, path3, path4, path5, w1, w2, w3):
+def multi13_lineaire(path1, path2, path3, path4, path5, w1, w3):
 
     parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours, ue_incompatibles = data(path1, path2, path3, path4, path5)
 
@@ -21,10 +21,6 @@ def multi123_lineaire(path1, path2, path3, path4, path5, w1, w2, w3):
     # variable binaire : 1 si l'étudiant n'a pas eu au moins une ue de ses voeux, 0 sinon
     z1 = {e: model.addVar(vtype=GRB.BINARY, name=f"z1_{e}") for e in parcours}
 
-    # = 1 si etu n'obtient pas au moins une ue de parcours dans ses premiers choix
-    z2 = {e: model.addVar(vtype=GRB.BINARY, name=f"z2_{e}")
-            for e in parcours}
-
     # nombre d'étudiant sans edt
     z3 = {e: model.addVar(vtype=GRB.BINARY, name=f"z3_{e}")
             for e in parcours}
@@ -42,7 +38,6 @@ def multi123_lineaire(path1, path2, path3, path4, path5, w1, w2, w3):
 
     model.setObjective(
         w1 * sum(z1[e] for e in parcours) +
-        w2 * sum(z2[e] for e in parcours) +
         w3 * sum(z3[e] for e in parcours),
         GRB.MINIMIZE
     )
@@ -55,28 +50,6 @@ def multi123_lineaire(path1, path2, path3, path4, path5, w1, w2, w3):
     for e in parcours:
         if ue_cons[e]:  # éviter les cas où ue_cons[e] est vide
             model.addConstr(z1[e] >= 1 - sum(x[e, u] for u in ue_cons[e]) / len(ue_cons[e]), name=f"z1_def_{e}")
-
-    # Contrainte sur z2 
-    for e in parcours:
-        nb = 0
-        first = []
-
-        for u in (ue_obligatoires[e] + ue_preferences[e]):
-            if nb == sum(ects[ue] for ue in (ue_obligatoires[e]+ue_cons[e])):
-                break
-            elif u in ue_parcours[parcours[e]]:
-                first.append(u)
-            nb = nb+ects[u]
-
-        if len(first) > 0:
-            model.addConstr(
-            z2[e] >= 1 - (1 / len(first)) * sum(x[e, u] for u in first),name=f"nb_etu_parcours_refusée_{e}")
-
-        else:
-            model.addConstr(
-                z2[e] == 0,
-                name=f"nb_ue_parcours_refusée_{e}_empty"
-            )
 
     # Contrainte: chaque étudiant doit avoir au plus 30 ECTS (z3)
     for e in parcours:
@@ -194,16 +167,6 @@ def multi123_lineaire(path1, path2, path3, path4, path5, w1, w2, w3):
         
         print(f"Valeur de la fonction objectif 1 : {nb_etu}")
 
-        #Affiche nb ue du parcours refusé 
-        count_etu=0
-
-        for e in parcours:
-            if z2[e].x>0.5:
-                count_etu+=1
-                print(f"L'étudiant {e} n'a pas eu au moins une ue de parcours dans ses premiers voeux")
-
-        print(f"Valeur de la fonction objectif 2 : {count_etu}")
-
         #Affiche les étudiants sans EDT valide 
         count_etu=0
 
@@ -213,21 +176,23 @@ def multi123_lineaire(path1, path2, path3, path4, path5, w1, w2, w3):
             if z3[e].x>0.5:
 
                 count_etu+=1
-                print(f"L'étudiant {e} n'a pas d'edt valide {int(nb_ects)} ECTS et {ec[e].x} ECTS manquants")
+                print(f"L'étudiant {e} n'a pas d'edt valide 3 : {int(nb_ects)} ECTS et {ec[e].x} ECTS manquants")
 
 
-        print(f"Valeur fonction objectif 3 : {count_etu}")
+        print(f"Valeur fonction objectif {count_etu}")
 
-    return sum(z1[e].x for e in parcours), sum(z2[e].x for e in parcours), sum(z3[e].x for e in parcours)
+    nb_z1 = sum(1 for e in parcours if z1[e].x > 0.5)
+    nb_z3 = sum(1 for e in parcours if z3[e].x > 0.5)
+
+    return nb_z1, nb_z3
 
 if __name__ == "__main__":
-    multi123_lineaire(
+    multi13_lineaire(
         "./../data/voeux2024_v4.csv",
         "./../data/EDT_M1S2_2024_v6_avec_ects.csv",
         "./../data/ues_parcours.csv",
         "./../data/nb_ue_hors_parcours.csv",
         "./../data/ue_incompatibles.csv",
         100,
-        50,
         500
     )

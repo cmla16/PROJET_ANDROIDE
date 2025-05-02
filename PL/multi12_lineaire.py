@@ -1,7 +1,7 @@
 from gurobipy import Model, GRB
 from data import data
 
-def mono1_nbEtu_voeux_insatisfaits(path1, path2, path3, path4, path5):
+def multi12_lineaire(path1, path2, path3, path4, path5, w1, w2):
 
     parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours, ue_incompatibles = data(path1, path2, path3, path4, path5)
 
@@ -21,13 +21,11 @@ def mono1_nbEtu_voeux_insatisfaits(path1, path2, path3, path4, path5):
     # variable binaire : 1 si l'étudiant n'a pas eu au moins une ue de ses voeux, 0 sinon
     z1 = {e: model.addVar(vtype=GRB.BINARY, name=f"z1_{e}") for e in parcours}
 
-    n = {e: model.addVar(vtype=GRB.BINARY, name=f"n_{e}")
-        for e in parcours}
-
-    # nombre d'ects manquants pour avoir un contrat valide
-    ec = {e: model.addVar(vtype=GRB.INTEGER, name=f"ec_{e}")
+    # = 1 si etu n'obtient pas au moins une ue de parcours dans ses premiers choix
+    z2 = {e: model.addVar(vtype=GRB.BINARY, name=f"z2_{e}")
             for e in parcours}
 
+    respecte_ects = {e: model.addVar(vtype=GRB.BINARY, name=f"respecte_ects_{e}") for e in parcours}
 
     """
     model.update()  # Si nécessaire, forcer la mise à jour du modèle
@@ -36,7 +34,11 @@ def mono1_nbEtu_voeux_insatisfaits(path1, path2, path3, path4, path5):
 
     #------------------------------------- Fonction objectif -------------------------------------#
 
-    model.setObjective(sum(z1[e] for e in parcours), GRB.MINIMIZE)
+    model.setObjective(
+        w1 * sum(z1[e] for e in parcours) +
+        w2 * sum(z2[e] for e in parcours),
+        GRB.MINIMIZE
+    )
 
 
     #------------------------------------- Contraintes -------------------------------------#
@@ -47,16 +49,44 @@ def mono1_nbEtu_voeux_insatisfaits(path1, path2, path3, path4, path5):
         if ue_cons[e]:  # éviter les cas où ue_cons[e] est vide
             model.addConstr(z1[e] >= 1 - sum(x[e, u] for u in ue_cons[e]) / len(ue_cons[e]), name=f"z1_def_{e}")
 
-
-
-    # Contrainte: chaque étudiant doit avoir au plus 30 ECTS (n)
+    # Contrainte sur z2 
     for e in parcours:
-        model.addConstr(sum(ects[u] * x[e, u] for u in (ue_obligatoires[e] + ue_preferences[e])) + ec[e] == sum(ects[ue] for ue in (ue_obligatoires[e] + ue_cons[e])) - (3 if parcours[e] == "IMA" else 0), name=f"ects_{e}")
+        nb = 0
+        first = []
 
-    # Contarintes sur n: 
+        for u in (ue_obligatoires[e] + ue_preferences[e]):
+            if nb == sum(ects[ue] for ue in (ue_obligatoires[e]+ue_cons[e])):
+                break
+            elif u in ue_parcours[parcours[e]]:
+                first.append(u)
+            nb = nb+ects[u]
+
+        if len(first) > 0:
+            model.addConstr(
+            z2[e] >= 1 - (1 / len(first)) * sum(x[e, u] for u in first),name=f"nb_etu_parcours_refusée_{e}")
+
+        else:
+            model.addConstr(
+                z2[e] == 0,
+                name=f"nb_ue_parcours_refusée_{e}_empty"
+            )
+
+    nb_etudiants = len(parcours)
+    M = 100  # assez grand pour désactiver la contrainte
+
     for e in parcours:
-        model.addConstr(ec[e] <= 30 * n[e], name=f"variable_d_ecart_e_{e}_<=_M_n_{e}")
-        model.addConstr(ec[e] >= 1 - 30 * (1 - n[e]), name=f"ec_min_if_n_{e}")
+        total_ects = sum(ects[u] * x[e, u] for u in (ue_obligatoires[e] + ue_preferences[e]))
+        target_ects = sum(ects[ue] for ue in (ue_obligatoires[e] + ue_cons[e])) - (3 if parcours[e] == "IMA" else 0)
+
+        # Formulation d'une contrainte relâchable avec big-M
+        model.addConstr(target_ects - total_ects <= (1-respecte_ects[e]) * M, name=f"ects_sup_{e}")
+        model.addConstr(target_ects - total_ects >= (1-respecte_ects[e]) * -M, name=f"ects_sup_{e}")
+        model.addConstr(target_ects - total_ects >= 0.01 - respecte_ects[e], name=f"ects_sup_{e}")
+        #model.addConstr(total_ects - target_ects >= respecte_ects[e] * M, name=f"ects_inf_{e}")
+
+    # Contrainte globale : au moins 90 % des étudiants doivent respecter l'égalité
+    model.addConstr(sum(respecte_ects[e] for e in parcours) >= 0.98 * nb_etudiants, name="min_90_percent_ects")
+
 
     # Contrainte: UEs obligatoires
     for e in parcours:
@@ -158,26 +188,28 @@ def mono1_nbEtu_voeux_insatisfaits(path1, path2, path3, path4, path5):
         
         print(f"Valeur de la fonction objectif 1 : {nb_etu}")
 
-        #Affiche les étudiants sans EDT valide 
+        #Affiche nb ue du parcours refusé 
         count_etu=0
 
         for e in parcours:
-            nb_ects = sum(ects[u] * x[e, u].x for u in (ue_obligatoires[e] + ue_preferences[e]))
-
-            if n[e].x>0.5:
-
+            if z2[e].x>0.5:
                 count_etu+=1
-                print(f"L'étudiant {e} n'a pas d'edt valide : {int(nb_ects)} ECTS et {ec[e].x} ECTS manquants")
-        
-        print(f"Nombre d'étudiant sans edt :  {count_etu}")
-    
-    return model.ObjVal
+                print(f"L'étudiant {e} n'a pas eu au moins une ue de parcours dans ses premiers voeux")
+
+        print(f"Valeur de la fonction objectif 2 : {count_etu}")
+
+    nb_z1 = sum(1 for e in parcours if z1[e].x > 0.5)
+    nb_z2 = sum(1 for e in parcours if z2[e].x > 0.5)
+
+    return nb_z1, nb_z2
 
 if __name__ == "__main__":
-    mono1_nbEtu_voeux_insatisfaits(
+    multi12_lineaire(
         "./../data/voeux2024_v4.csv",
         "./../data/EDT_M1S2_2024_v6_avec_ects.csv",
         "./../data/ues_parcours.csv",
         "./../data/nb_ue_hors_parcours.csv",
-        "./../data/ue_incompatibles.csv"
+        "./../data/ue_incompatibles.csv",
+        100,
+        50
     )

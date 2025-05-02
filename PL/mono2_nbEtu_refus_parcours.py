@@ -21,6 +21,8 @@ def mono2_nbEtu_refus_parcours(path1, path2, path3, path4, path5):
     # = 1 si etu n'obtient pas au moins une ue de parcours dans ses premiers choix
     z2 = {e: model.addVar(vtype=GRB.BINARY, name=f"z2_{e}")
             for e in parcours}
+    
+    respecte_ects = {e: model.addVar(vtype=GRB.BINARY, name=f"respecte_ects_{e}") for e in parcours}
 
 
     """
@@ -59,10 +61,29 @@ def mono2_nbEtu_refus_parcours(path1, path2, path3, path4, path5):
                 name=f"nb_ue_parcours_refusée_{e}_empty"
             )
         
-
+    """
     # Contrainte: chaque étudiant doit avoir au plus 30 ECTS
     for e in parcours:
         model.addConstr(sum(ects[u] * x[e, u] for u in (ue_obligatoires[e] + ue_preferences[e])) == sum(ects[ue] for ue in (ue_obligatoires[e] + ue_cons[e])) - (3 if parcours[e] == "IMA" else 0), name=f"ects_{e}")
+    """
+
+    nb_etudiants = len(parcours)
+    M = 100  # assez grand pour désactiver la contrainte
+
+    for e in parcours:
+        total_ects = sum(ects[u] * x[e, u] for u in (ue_obligatoires[e] + ue_preferences[e]))
+        target_ects = sum(ects[ue] for ue in (ue_obligatoires[e] + ue_cons[e])) - (3 if parcours[e] == "IMA" else 0)
+
+        # Formulation d'une contrainte relâchable avec big-M
+        model.addConstr(target_ects - total_ects <= (1-respecte_ects[e]) * M, name=f"ects_sup_{e}")
+        model.addConstr(target_ects - total_ects >= (1-respecte_ects[e]) * -M, name=f"ects_sup_{e}")
+        model.addConstr(target_ects - total_ects >= 0.01 - respecte_ects[e], name=f"ects_sup_{e}")
+        #model.addConstr(total_ects - target_ects >= respecte_ects[e] * M, name=f"ects_inf_{e}")
+
+    # Contrainte globale : au moins 90 % des étudiants doivent respecter l'égalité
+    model.addConstr(sum(respecte_ects[e] for e in parcours) >= 0.98 * nb_etudiants, name="min_90_percent_ects")
+    
+
 
     # Contrainte: UEs obligatoires
     for e in parcours:

@@ -47,7 +47,6 @@ def mono3_nbEtu_sans_edt(path1, path2, path3, path4, path5):
     # Contarintes sur z3: 
     for e in parcours:
         model.addConstr(ec[e] <= 30 * z3[e], name=f"variable_d_ecart_e_{e}_<=_M_z3_{e}")
-        model.addConstr(ec[e] >= 1 - 30 * (1 - z3[e]), name=f"ec_min_if_z3_{e}")
 
 
 

@@ -216,7 +216,7 @@ def multi12_lineaire(path1, path2, path3, path4, path5, w1, w2,coverage):
 
     
 
-    return nb_z1, nb_z2
+        return nb_z1, nb_z2
 
 if __name__ == "__main__":
     multi12_lineaire(

@@ -85,14 +85,6 @@ def multi123_lineaire(path1, path2, path3, path4, path5, w1, w2, w3):
     # Contarintes sur z3: 
     for e in parcours:
         model.addConstr(ec[e] <= 30 * z3[e], name=f"variable_d_ecart_e_{e}_<=_M_z3_{e}")
-        model.addConstr(ec[e] >= 1 - 30 * (1 - z3[e]), name=f"ec_min_if_z3_{e}")
-
-
-    """
-    # Contrainte: chaque étudiant doit avoir au plus 30 ECTS
-    for e in parcours:
-        model.addConstr(sum(ects[u] * x[e, u] for u in (ue_obligatoires[e] + ue_preferences[e])) == sum(ects[ue] for ue in (ue_obligatoires[e] + ue_cons[e])) - (3 if parcours[e] == "IMA" else 0), name=f"ects_{e}")
-    """
 
     # Contrainte: UEs obligatoires
     for e in parcours:
@@ -220,7 +212,7 @@ def multi123_lineaire(path1, path2, path3, path4, path5, w1, w2, w3):
 
         print(f"Valeur fonction objectif 3 : {count_etu}")
 
-    return sum(z1[e].x for e in parcours), sum(z2[e].x for e in parcours), sum(z3[e].x for e in parcours)
+        return sum(z1[e].x for e in parcours), sum(z2[e].x for e in parcours), sum(z3[e].x for e in parcours)
 
 if __name__ == "__main__":
     multi123_lineaire(

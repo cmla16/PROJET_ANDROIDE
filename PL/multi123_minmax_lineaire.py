@@ -54,15 +54,15 @@ def multi123_minmax_lineaire(path1, path2, path3, path4, path5, epsilon, lambda1
     e2 = (sum(z2[e] for e in parcours) - OPT2) / max(OPT2, epsilon)
     e3 = (sum(z3[e] for e in parcours) - OPT3) / max(OPT3, epsilon)
 
-    model.setObjective(z + epsilon * (lambda1 * e1 + lambda2 * e2 + lambda3 * e3), GRB.MINIMIZE)
+    model.setObjective(z + epsilon * (e1 + e2 + e3), GRB.MINIMIZE)
 
 
     #------------------------------------- Contraintes -------------------------------------#
 
     # Linéariser
-    model.addConstr(z >= e1, name=f"linéariser_z1")
-    model.addConstr(z >= e2, name=f"linéariser_z2")
-    model.addConstr(z >= e3, name=f"linéariser_z3")
+    model.addConstr(z >= lambda1 * e1, name=f"linéariser_z1")
+    model.addConstr(z >= lambda2 * e2, name=f"linéariser_z2")
+    model.addConstr(z >= lambda3 * e3, name=f"linéariser_z3")
 
 
     # contrainte pour définir z1_e
@@ -99,15 +99,6 @@ def multi123_minmax_lineaire(path1, path2, path3, path4, path5, epsilon, lambda1
     # Contarintes sur z3: 
     for e in parcours:
         model.addConstr(ec[e] <= 30 * z3[e], name=f"variable_d_ecart_e_{e}_<=_M_z3_{e}")
-        model.addConstr(ec[e] >= 1 - 30 * (1 - z3[e]), name=f"ec_min_if_z3_{e}")
-
-
-
-    """
-    # Contrainte: chaque étudiant doit avoir au plus 30 ECTS
-    for e in parcours:
-        model.addConstr(sum(ects[u] * x[e, u] for u in (ue_obligatoires[e] + ue_preferences[e])) == sum(ects[ue] for ue in (ue_obligatoires[e] + ue_cons[e])) - (3 if parcours[e] == "IMA" else 0), name=f"ects_{e}")
-    """
 
     # Contrainte: UEs obligatoires
     for e in parcours:
@@ -168,6 +159,7 @@ def multi123_minmax_lineaire(path1, path2, path3, path4, path5, epsilon, lambda1
         model.computeIIS()
         model.write("infeasible_model.ilp") 
         print("Modèle 123_minmax infaisable")
+        return
 
 
     # Affichage des résultats
@@ -238,7 +230,7 @@ def multi123_minmax_lineaire(path1, path2, path3, path4, path5, epsilon, lambda1
 
         
 
-    return sum(z1[e].x for e in parcours), sum(z2[e].x for e in parcours), sum(z3[e].x for e in parcours)
+        return sum(z1[e].x for e in parcours), sum(z2[e].x for e in parcours), sum(z3[e].x for e in parcours)
 
 if __name__ == "__main__":
     multi123_minmax_lineaire(

@@ -156,7 +156,8 @@ def multi12_minmax(path1, path2, path3, path4, path5):
 
     if model.status == GRB.INFEASIBLE:
         model.computeIIS()
-        model.write("infeasible_model.ilp") 
+        model.write("infeasible_model.ilp")
+        print("Modèle 12_minmax infaisable !!! ") 
 
 
     # Affichage des résultats
@@ -211,7 +212,12 @@ def multi12_minmax(path1, path2, path3, path4, path5):
 
         print(f"Valeur fonction objectif z : {z.x}")
 
-    return model.ObjVal
+        nb_z1 = sum(1 for e in parcours if z1[e].x > 0.5)
+        nb_z2 = sum(1 for e in parcours if z2[e].x > 0.5)
+
+    
+
+        return nb_z1, nb_z2
 
 if __name__ == "__main__":
     multi12_minmax(

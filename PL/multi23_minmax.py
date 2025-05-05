@@ -33,10 +33,6 @@ def multi23_minmax(path1, path2, path3, path4, path5):
     ec = {e: model.addVar(vtype=GRB.INTEGER, name=f"ec_{e}")
             for e in parcours}
 
-    """
-    model.update()  # Si nécessaire, forcer la mise à jour du modèle
-    for (e, u, g), var in y.items():
-        print(var.VarName)"""
 
     #------------------------------------- Fonction objectif -------------------------------------#
 
@@ -78,15 +74,7 @@ def multi23_minmax(path1, path2, path3, path4, path5):
     # Contarintes sur z3: 
     for e in parcours:
         model.addConstr(ec[e] <= 30 * z3[e], name=f"variable_d_ecart_e_{e}_<=_M_z3_{e}")
-        model.addConstr(ec[e] >= 1 - 30 * (1 - z3[e]), name=f"ec_min_if_z3_{e}")
 
-
-
-    """
-    # Contrainte: chaque étudiant doit avoir au plus 30 ECTS
-    for e in parcours:
-        model.addConstr(sum(ects[u] * x[e, u] for u in (ue_obligatoires[e] + ue_preferences[e])) == sum(ects[ue] for ue in (ue_obligatoires[e] + ue_cons[e])) - (3 if parcours[e] == "IMA" else 0), name=f"ects_{e}")
-    """
 
     # Contrainte: UEs obligatoires
     for e in parcours:
@@ -146,6 +134,8 @@ def multi23_minmax(path1, path2, path3, path4, path5):
     if model.status == GRB.INFEASIBLE:
         model.computeIIS()
         model.write("infeasible_model.ilp") 
+        print("Modèle 23_minmax infaisable !!!")
+        return
 
 
     # Affichage des résultats
@@ -205,7 +195,10 @@ def multi23_minmax(path1, path2, path3, path4, path5):
 
         print(f"Valeur fonction objectif z : {z.x}")
 
-    return model.ObjVal
+        nb_z2 = sum(1 for e in parcours if z2[e].x > 0.5)
+        nb_z3 = sum(1 for e in parcours if z3[e].x > 0.5)
+
+        return nb_z2, nb_z3
 
 if __name__ == "__main__":
     multi23_minmax(

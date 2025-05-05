@@ -1,7 +1,7 @@
 from gurobipy import Model, GRB
 from data import data
 
-def mono2_nbEtu_refus_parcours(path1, path2, path3, path4, path5):
+def mono2_nbEtu_refus_parcours(path1, path2, path3, path4, path5, coverage):
 
     parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours, ue_incompatibles = data(path1, path2, path3, path4, path5)
 
@@ -49,7 +49,7 @@ def mono2_nbEtu_refus_parcours(path1, path2, path3, path4, path5):
                 first.append(u)
             nb = nb+ects[u]
 
-        #print(first)
+        #print(f"Etudiant {e} et {first} et parcours = {ue_parcours[parcours[e]]}")
 
         if len(first) > 0:
             model.addConstr(
@@ -81,7 +81,7 @@ def mono2_nbEtu_refus_parcours(path1, path2, path3, path4, path5):
         #model.addConstr(total_ects - target_ects >= respecte_ects[e] * M, name=f"ects_inf_{e}")
 
     # Contrainte globale : au moins 90 % des étudiants doivent respecter l'égalité
-    model.addConstr(sum(respecte_ects[e] for e in parcours) >= 0.98 * nb_etudiants, name="min_90_percent_ects")
+    model.addConstr(sum(respecte_ects[e] for e in parcours) >= coverage * nb_etudiants, name="min_90_percent_ects")
     
 
 
@@ -194,5 +194,6 @@ if __name__ == "__main__":
         "./../data/EDT_M1S2_2024_v6_avec_ects.csv",
         "./../data/ues_parcours.csv",
         "./../data/nb_ue_hors_parcours.csv",
-        "./../data/ue_incompatibles.csv"
+        "./../data/ue_incompatibles.csv",
+        0.98
     )

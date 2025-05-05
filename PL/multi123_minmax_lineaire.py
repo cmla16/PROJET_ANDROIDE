@@ -8,8 +8,8 @@ def multi123_minmax_lineaire(path1, path2, path3, path4, path5, epsilon, lambda1
 
     parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours, ue_incompatibles = data(path1, path2, path3, path4, path5)
 
-    OPT1 = mono1_nbEtu_voeux_insatisfaits(path1, path2, path3, path4, path5)
-    OPT2 = mono2_nbEtu_refus_parcours(path1, path2, path3, path4, path5)
+    OPT1 = mono1_nbEtu_voeux_insatisfaits(path1, path2, path3, path4, path5,0.98)
+    OPT2 = mono2_nbEtu_refus_parcours(path1, path2, path3, path4, path5,0.98)
     OPT3 = mono3_nbEtu_sans_edt(path1, path2, path3, path4, path5)
 
     # Modèle
@@ -92,7 +92,7 @@ def multi123_minmax_lineaire(path1, path2, path3, path4, path5, epsilon, lambda1
                 name=f"nb_ue_parcours_refusée_{e}_empty"
             )
 
-    # Contrainte: chaque étudiant doit avoir au plus 30 ECTS (z3)
+    # Contrainte: chaque étudiant doit avoir au plus 30 ECTS (parcours classique) (z3)
     for e in parcours:
         model.addConstr(sum(ects[u] * x[e, u] for u in (ue_obligatoires[e] + ue_preferences[e])) + ec[e] == sum(ects[ue] for ue in (ue_obligatoires[e] + ue_cons[e])) - (3 if parcours[e] == "IMA" else 0), name=f"ects_{e}")
 
@@ -167,6 +167,7 @@ def multi123_minmax_lineaire(path1, path2, path3, path4, path5, epsilon, lambda1
     if model.status == GRB.INFEASIBLE:
         model.computeIIS()
         model.write("infeasible_model.ilp") 
+        print("Modèle 123_minmax infaisable")
 
 
     # Affichage des résultats
@@ -235,7 +236,9 @@ def multi123_minmax_lineaire(path1, path2, path3, path4, path5, epsilon, lambda1
 
         print(f"Valeur fonction objectif z :{z.x}")
 
-    return model.ObjVal
+        
+
+    return sum(z1[e].x for e in parcours), sum(z2[e].x for e in parcours), sum(z3[e].x for e in parcours)
 
 if __name__ == "__main__":
     multi123_minmax_lineaire(

@@ -152,6 +152,8 @@ def multi123_lineaire(path1, path2, path3, path4, path5, w1, w2, w3):
     if model.status == GRB.INFEASIBLE:
         model.computeIIS()
         model.write("infeasible_model.ilp") 
+        print("Modèle 123_lineaire infaisable !!!")
+        return 
 
 
     # Affichage des résultats

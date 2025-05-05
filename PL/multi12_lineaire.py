@@ -1,7 +1,7 @@
 from gurobipy import Model, GRB
 from data import data
 
-def multi12_lineaire(path1, path2, path3, path4, path5, w1, w2):
+def multi12_lineaire(path1, path2, path3, path4, path5, w1, w2,coverage):
 
     parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours, ue_incompatibles = data(path1, path2, path3, path4, path5)
 
@@ -71,6 +71,15 @@ def multi12_lineaire(path1, path2, path3, path4, path5, w1, w2):
                 name=f"nb_ue_parcours_refusée_{e}_empty"
             )
 
+    """#Contrainte strict (infaisable dans le cas z1  vs z2)
+    for e in parcours:
+        model.addConstr(sum(ects[u] * x[e, u] for u in (ue_obligatoires[e] + ue_preferences[e])) == sum(ects[ue] for ue in (ue_obligatoires[e] + ue_cons[e])) - (3 if parcours[e] == "IMA" else 0), name=f"ects_{e}")
+
+    """
+
+    
+    
+    #Contrainte relachée à coverage x 100 % d'étudiants
     nb_etudiants = len(parcours)
     M = 100  # assez grand pour désactiver la contrainte
 
@@ -85,7 +94,9 @@ def multi12_lineaire(path1, path2, path3, path4, path5, w1, w2):
         #model.addConstr(total_ects - target_ects >= respecte_ects[e] * M, name=f"ects_inf_{e}")
 
     # Contrainte globale : au moins 90 % des étudiants doivent respecter l'égalité
-    model.addConstr(sum(respecte_ects[e] for e in parcours) >= 0.98 * nb_etudiants, name="min_90_percent_ects")
+    model.addConstr(sum(respecte_ects[e] for e in parcours) >= coverage * nb_etudiants, name="min_90_percent_ects")
+
+
 
 
     # Contrainte: UEs obligatoires
@@ -146,6 +157,8 @@ def multi12_lineaire(path1, path2, path3, path4, path5, w1, w2):
     if model.status == GRB.INFEASIBLE:
         model.computeIIS()
         model.write("infeasible_model.ilp") 
+        print("Modèle infaisable !!!")
+        return
 
 
     # Affichage des résultats
@@ -178,7 +191,7 @@ def multi12_lineaire(path1, path2, path3, path4, path5, w1, w2):
         for (u, g), count in compte_groupes_td_ue.items():
             print(f"UE {u} - Groupe {g} : {count} étudiant(s)")
         """
-
+        
         #Affiche le nombre d'étudiant qui n'ont pas eu au moins un voeux
         nb_etu = 0
         for e in parcours:
@@ -198,8 +211,10 @@ def multi12_lineaire(path1, path2, path3, path4, path5, w1, w2):
 
         print(f"Valeur de la fonction objectif 2 : {count_etu}")
 
-    nb_z1 = sum(1 for e in parcours if z1[e].x > 0.5)
-    nb_z2 = sum(1 for e in parcours if z2[e].x > 0.5)
+        nb_z1 = sum(1 for e in parcours if z1[e].x > 0.5)
+        nb_z2 = sum(1 for e in parcours if z2[e].x > 0.5)
+
+    
 
     return nb_z1, nb_z2
 
@@ -211,5 +226,6 @@ if __name__ == "__main__":
         "./../data/nb_ue_hors_parcours.csv",
         "./../data/ue_incompatibles.csv",
         100,
-        50
+        50,
+        0.98
     )

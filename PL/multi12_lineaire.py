@@ -1,12 +1,16 @@
 from gurobipy import Model, GRB
 from data import data
+from mono1_nbEtu_voeux_insatisfaits import mono1_nbEtu_voeux_insatisfaits
+from mono2_nbEtu_refus_parcours import mono2_nbEtu_refus_parcours
 
-def multi12_lineaire(path1, path2, path3, path4, path5, w1, w2,coverage):
+def multi12_lineaire(path1, path2, path3, path4, path5, lambda1, lambda2, coverage):
 
     parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours, ue_incompatibles = data(path1, path2, path3, path4, path5)
 
+    OPT1 = mono1_nbEtu_voeux_insatisfaits(path1, path2, path3, path4, path5,0.98)
+    OPT2 = mono2_nbEtu_refus_parcours(path1, path2, path3, path4, path5,0.98)
+
     # Modèle
-    # Minimiser le nombre d'étudiant qui n'ont pas eu au moins un voeux
     model = Model("Attribution en Master")
 
     #------------------------------------- Variables de décision -------------------------------------#
@@ -27,18 +31,12 @@ def multi12_lineaire(path1, path2, path3, path4, path5, w1, w2,coverage):
 
     respecte_ects = {e: model.addVar(vtype=GRB.BINARY, name=f"respecte_ects_{e}") for e in parcours}
 
-    """
-    model.update()  # Si nécessaire, forcer la mise à jour du modèle
-    for (e, u, g), var in y.items():
-        print(var.VarName)"""
-
     #------------------------------------- Fonction objectif -------------------------------------#
 
-    model.setObjective(
-        w1 * sum(z1[e] for e in parcours) +
-        w2 * sum(z2[e] for e in parcours),
-        GRB.MINIMIZE
-    )
+    e1 = (sum(z1[e] for e in parcours) - OPT1) / max(OPT1, 1)
+    e2 = (sum(z2[e] for e in parcours) - OPT2) / max(OPT2, 1)
+
+    model.setObjective(lambda1 * e1 + lambda2 * e2, GRB.MINIMIZE)
 
 
     #------------------------------------- Contraintes -------------------------------------#
@@ -70,14 +68,6 @@ def multi12_lineaire(path1, path2, path3, path4, path5, w1, w2,coverage):
                 z2[e] == 0,
                 name=f"nb_ue_parcours_refusée_{e}_empty"
             )
-
-    """#Contrainte strict (infaisable dans le cas z1  vs z2)
-    for e in parcours:
-        model.addConstr(sum(ects[u] * x[e, u] for u in (ue_obligatoires[e] + ue_preferences[e])) == sum(ects[ue] for ue in (ue_obligatoires[e] + ue_cons[e])) - (3 if parcours[e] == "IMA" else 0), name=f"ects_{e}")
-
-    """
-
-    
     
     #Contrainte relachée à coverage x 100 % d'étudiants
     nb_etudiants = len(parcours)
@@ -97,10 +87,9 @@ def multi12_lineaire(path1, path2, path3, path4, path5, w1, w2,coverage):
     model.addConstr(sum(respecte_ects[e] for e in parcours) >= coverage * nb_etudiants, name="min_90_percent_ects")
 
 
-
-
-    # Contrainte: UEs obligatoires
+    
     for e in parcours:
+        # Contrainte: UEs obligatoires
         for u in ue_obligatoires.get(e, []):
             model.addConstr(x[e, u] == 1, name=f"ue_obligatoire_{e}_{u}")
 
@@ -163,34 +152,6 @@ def multi12_lineaire(path1, path2, path3, path4, path5, w1, w2,coverage):
 
     # Affichage des résultats
     if model.status == GRB.OPTIMAL:
-        for e in parcours:
-            print(f"Emploi du temps de {e} ({parcours[e]}) :")
-            for u in (ue_obligatoires[e] + ue_preferences[e]):
-                if(e,u) in x :
-                    if x[e, u].x > 0.5:
-                        print(f"  - {u} ({ects[u]} ECTS)")
-                        for g in groupes_td.get(u, []):
-                            if(e, u, g) in y : 
-                                if y[e, u, g].x > 0.5:
-                                    print(f"    -> Groupe {g}")
-
-
-        """
-        # Initialiser un dictionnaire pour compter le nombre d'étudiants par groupe de TD pour chaque UE
-        compte_groupes_td_ue = {(u, g): 0 for e in parcours for u in (ue_obligatoires[e] + ue_preferences[e]) if u in groupes_td for g in groupes_td[u]}
-
-        # Comptabiliser les étudiants dans chaque groupe de TD pour chaque UE
-        for e in parcours:
-            for u in (ue_obligatoires[e] + ue_preferences[e]):
-                if u in groupes_td:
-                    for g in groupes_td[u]:
-                        if (e, u, g) in y and y[e, u, g].x > 0.5:  # Si l'étudiant e est dans le groupe g pour l'UE u
-                            compte_groupes_td_ue[(u, g)] += 1
-
-        # Afficher le nombre d'étudiants dans chaque groupe de TD pour chaque UE
-        for (u, g), count in compte_groupes_td_ue.items():
-            print(f"UE {u} - Groupe {g} : {count} étudiant(s)")
-        """
         
         #Affiche le nombre d'étudiant qui n'ont pas eu au moins un voeux
         nb_etu = 0
@@ -214,8 +175,6 @@ def multi12_lineaire(path1, path2, path3, path4, path5, w1, w2,coverage):
         nb_z1 = sum(1 for e in parcours if z1[e].x > 0.5)
         nb_z2 = sum(1 for e in parcours if z2[e].x > 0.5)
 
-    
-
         return nb_z1, nb_z2
 
 if __name__ == "__main__":
@@ -225,7 +184,7 @@ if __name__ == "__main__":
         "./../data/ues_parcours.csv",
         "./../data/nb_ue_hors_parcours.csv",
         "./../data/ue_incompatibles.csv",
-        100,
-        50,
+        1,
+        1,
         0.98
     )

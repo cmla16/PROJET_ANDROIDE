@@ -1,13 +1,16 @@
 from gurobipy import Model, GRB
 from data import data
+from mono1_nbEtu_voeux_insatisfaits import mono1_nbEtu_voeux_insatisfaits
+from mono3_nbEtu_sans_edt import mono3_nbEtu_sans_edt
 
-def multi13_minmax(path1, path2, path3, path4, path5):
+def multi13_minmax(path1, path2, path3, path4, path5, epsilon, lambda1, lambda3):
 
     parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours, ue_incompatibles = data(path1, path2, path3, path4, path5)
 
+    OPT1 = mono1_nbEtu_voeux_insatisfaits(path1, path2, path3, path4, path5,0.98)
+    OPT3 = mono3_nbEtu_sans_edt(path1, path2, path3, path4, path5)
 
     # Modèle
-    # Minimiser le nombre d'étudiant qui n'ont pas eu au moins un voeux
     model = Model("Attribution en Master")
 
     #------------------------------------- Variables de décision -------------------------------------#
@@ -33,21 +36,19 @@ def multi13_minmax(path1, path2, path3, path4, path5):
     ec = {e: model.addVar(vtype=GRB.INTEGER, name=f"ec_{e}")
             for e in parcours}
 
-    """
-    model.update()  # Si nécessaire, forcer la mise à jour du modèle
-    for (e, u, g), var in y.items():
-        print(var.VarName)"""
-
     #------------------------------------- Fonction objectif -------------------------------------#
 
-    model.setObjective(z, GRB.MINIMIZE)
+    e1 = (sum(z1[e] for e in parcours) - OPT1) / max(OPT1, 1)
+    e3 = (sum(z3[e] for e in parcours) - OPT3) / max(OPT3, 1)
+
+    model.setObjective(z + epsilon * (lambda1 * e1 + lambda3 * e3), GRB.MINIMIZE)
 
 
     #------------------------------------- Contraintes -------------------------------------#
 
     # Linéariser
-    model.addConstr(z >= sum(z1[e] for e in parcours), name=f"linéariser_z1")
-    model.addConstr(z >= sum(z3[e] for e in parcours), name=f"linéariser_z3")
+    model.addConstr(z >= lambda1 * e1, name=f"linéariser_z1")
+    model.addConstr(z >= lambda3 * e3, name=f"linéariser_z3")
 
 
     # contrainte pour définir z1_e
@@ -126,34 +127,6 @@ def multi13_minmax(path1, path2, path3, path4, path5):
 
     # Affichage des résultats
     if model.status == GRB.OPTIMAL:
-        for e in parcours:
-            print(f"Emploi du temps de {e} ({parcours[e]}) :")
-            for u in (ue_obligatoires[e] + ue_preferences[e]):
-                if(e,u) in x :
-                    if x[e, u].x > 0.5:
-                        print(f"  - {u} ({ects[u]} ECTS)")
-                        for g in groupes_td.get(u, []):
-                            if(e, u, g) in y : 
-                                if y[e, u, g].x > 0.5:
-                                    print(f"    -> Groupe {g}")
-
-
-        """
-        # Initialiser un dictionnaire pour compter le nombre d'étudiants par groupe de TD pour chaque UE
-        compte_groupes_td_ue = {(u, g): 0 for e in parcours for u in (ue_obligatoires[e] + ue_preferences[e]) if u in groupes_td for g in groupes_td[u]}
-
-        # Comptabiliser les étudiants dans chaque groupe de TD pour chaque UE
-        for e in parcours:
-            for u in (ue_obligatoires[e] + ue_preferences[e]):
-                if u in groupes_td:
-                    for g in groupes_td[u]:
-                        if (e, u, g) in y and y[e, u, g].x > 0.5:  # Si l'étudiant e est dans le groupe g pour l'UE u
-                            compte_groupes_td_ue[(u, g)] += 1
-
-        # Afficher le nombre d'étudiants dans chaque groupe de TD pour chaque UE
-        for (u, g), count in compte_groupes_td_ue.items():
-            print(f"UE {u} - Groupe {g} : {count} étudiant(s)")
-        """
 
         #Affiche le nombre d'étudiant qui n'ont pas eu au moins un voeux
         nb_etu = 0
@@ -191,5 +164,8 @@ if __name__ == "__main__":
         "./../data/EDT_M1S2_2024_v6_avec_ects.csv",
         "./../data/ues_parcours.csv",
         "./../data/nb_ue_hors_parcours.csv",
-        "./../data/ue_incompatibles.csv"
+        "./../data/ue_incompatibles.csv",
+        0.01,
+        1,
+        1
     )

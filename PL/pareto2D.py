@@ -2,61 +2,22 @@ import matplotlib.pyplot as plt
 from multi23_lineaire import multi23_lineaire
 from multi13_lineaire import multi13_lineaire
 from multi12_lineaire import multi12_lineaire
-
-"""w2_list = [1, 10, 50, 100, 300, 500, 800, 1000]
-w3_list = [1000, 800, 500, 300, 100, 50, 10, 1]
-
-solutions = []
-
-for w2 in w2_list:
-    for w3 in w3_list:
-        print(f"résolution avec w2={w2}, w3={w3}")
-        nb_z2, nb_z3 = multi13_lineaire(
-            "./../data/voeux2024_v4.csv",
-            "./../data/EDT_M1S2_2024_v6_avec_ects.csv",
-            "./../data/ues_parcours.csv",
-            "./../data/nb_ue_hors_parcours.csv",
-            "./../data/ue_incompatibles.csv",
-            w2,
-            w3
-        )
-        solutions.append((nb_z2, nb_z3))
-
-
-# plot 2D
-x_vals = [s[0] for s in solutions]
-y_vals = [s[1] for s in solutions]
-
-plt.figure(figsize=(8,6))
-plt.scatter(x_vals, y_vals, color='dodgerblue', label='solutions')
-plt.xlabel("nb étudiants sans voeux parcours (z2)")
-plt.ylabel("nb étudiants sans contrat valide (z3)")
-plt.title("Front de Pareto - Affectation des UE")
-plt.grid(True)
-plt.legend()
-plt.show()"""
+import numpy as np
 
 "===================MON CODE======================"
 
-# Liste de poids à tester (tu peux raffiner)
-weight_sets = [
-    (1.0,0.0,0.0),
-    (0.0,1.0,0.0),
-    (0.0,0.0,1.0),
-    (0.6, 0.3, 0.1),
-    (0.5, 0.3, 0.2),
-    (0.33, 0.33, 0.34),
-    (0.2, 0.5, 0.3),
-    (0.1, 0.6, 0.3),
-    (0.0, 0.3, 0.6),
-    (0.0, 0.2, 0.8),
-    (0.0, 0.1, 0.9),
-]
-
+def generate_weights(step=0.1):
+    weights = []
+    for w1 in np.arange(0, 1 + step, step):
+        for w2 in np.arange(0, 1 + step - w1, step):
+            w3 = 1 - w1 - w2
+            if w3 < 0 or w3 > 1 or w1 == 0 or w2 == 0 or w3 == 0:
+                continue
+            weights.append((round(w1, 2), round(w2, 2), round(w3, 2)))
+    return weights
+weight_sets = generate_weights()
 
 def pareto_2D_2_3(weights,name):
-
-
     results = []
 
     for w in weight_sets:

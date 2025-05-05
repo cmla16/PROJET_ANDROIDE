@@ -1,5 +1,5 @@
 from gurobipy import Model, GRB
-from data import data
+from data import data, attributions, stats
 from mono1_nbEtu_voeux_insatisfaits import mono1_nbEtu_voeux_insatisfaits
 from mono2_nbEtu_refus_parcours import mono2_nbEtu_refus_parcours
 from mono3_nbEtu_sans_edt import mono3_nbEtu_sans_edt
@@ -43,16 +43,11 @@ def multi123_minmax_lineaire(path1, path2, path3, path4, path5, epsilon, lambda1
     ec = {e: model.addVar(vtype=GRB.INTEGER, name=f"ec_{e}")
             for e in parcours}
 
-    """
-    model.update()  # Si nécessaire, forcer la mise à jour du modèle
-    for (e, u, g), var in y.items():
-        print(var.VarName)"""
-
     #------------------------------------- Fonction objectif -------------------------------------#
 
-    e1 = (sum(z1[e] for e in parcours) - OPT1) / max(OPT1, epsilon)
-    e2 = (sum(z2[e] for e in parcours) - OPT2) / max(OPT2, epsilon)
-    e3 = (sum(z3[e] for e in parcours) - OPT3) / max(OPT3, epsilon)
+    e1 = (sum(z1[e] for e in parcours) - OPT1) / max(OPT1, 1)
+    e2 = (sum(z2[e] for e in parcours) - OPT2) / max(OPT2, 1)
+    e3 = (sum(z3[e] for e in parcours) - OPT3) / max(OPT3, 1)
 
     model.setObjective(z + epsilon * (e1 + e2 + e3), GRB.MINIMIZE)
 
@@ -157,78 +152,15 @@ def multi123_minmax_lineaire(path1, path2, path3, path4, path5, epsilon, lambda1
 
     if model.status == GRB.INFEASIBLE:
         model.computeIIS()
-        model.write("infeasible_model.ilp") 
-        print("Modèle 123_minmax infaisable")
-        return
+        model.write("infeasible_model.ilp")
+        print("modèle infaisable")
+        return 
 
 
     # Affichage des résultats
     if model.status == GRB.OPTIMAL:
-        for e in parcours:
-            print(f"Emploi du temps de {e} ({parcours[e]}) :")
-            for u in (ue_obligatoires[e] + ue_preferences[e]):
-                if(e,u) in x :
-                    if x[e, u].x > 0.5:
-                        print(f"  - {u} ({ects[u]} ECTS)")
-                        for g in groupes_td.get(u, []):
-                            if(e, u, g) in y : 
-                                if y[e, u, g].x > 0.5:
-                                    print(f"    -> Groupe {g}")
-
-
-        """
-        # Initialiser un dictionnaire pour compter le nombre d'étudiants par groupe de TD pour chaque UE
-        compte_groupes_td_ue = {(u, g): 0 for e in parcours for u in (ue_obligatoires[e] + ue_preferences[e]) if u in groupes_td for g in groupes_td[u]}
-
-        # Comptabiliser les étudiants dans chaque groupe de TD pour chaque UE
-        for e in parcours:
-            for u in (ue_obligatoires[e] + ue_preferences[e]):
-                if u in groupes_td:
-                    for g in groupes_td[u]:
-                        if (e, u, g) in y and y[e, u, g].x > 0.5:  # Si l'étudiant e est dans le groupe g pour l'UE u
-                            compte_groupes_td_ue[(u, g)] += 1
-
-        # Afficher le nombre d'étudiants dans chaque groupe de TD pour chaque UE
-        for (u, g), count in compte_groupes_td_ue.items():
-            print(f"UE {u} - Groupe {g} : {count} étudiant(s)")
-        """
-
-        #Affiche le nombre d'étudiant qui n'ont pas eu au moins un voeux
-        nb_etu = 0
-        for e in parcours:
-            if z1[e].x > 0.5:
-                nb_etu += 1
-                print(f"L'étudiant {e} n'a pas eu au moins une UE dans ses premiers choix.")
-        
-        print(f"Valeur de la fonction objectif 1 :{nb_etu}")
-
-        #Affiche nb ue du parcours refusé 
-        count_etu=0
-
-        for e in parcours:
-            if z2[e].x>0.5:
-                count_etu+=1
-                print(f"L'étudiant {e} n'a pas eu au moins une ue de parcours dans ses premiers voeux")
-
-        print(f"Valeur de la fonction objectif 2 :{count_etu}")
-
-        #Affiche les étudiants sans EDT valide 
-        count_etu=0
-
-        for e in parcours:
-            nb_ects = sum(ects[u] * x[e, u].x for u in (ue_obligatoires[e] + ue_preferences[e]))
-
-            if z3[e].x>0.5:
-
-                count_etu+=1
-                print(f"L'étudiant {e} n'a pas d'edt valide : {int(nb_ects)} ECTS et {ec[e].x} ECTS manquants")
-
-
-        print(f"Valeur fonction objectif 3 :{count_etu}")
-
-        print(f"Valeur fonction objectif z :{z.x}")
-
-        
+        attributions("multi123_minmax_lineaire", x, y, parcours, ue_obligatoires, ue_preferences, groupes_td)
+        stats("multi123_minmax_lineaire", parcours, z1, z2, z3)
 
         return sum(z1[e].x for e in parcours), sum(z2[e].x for e in parcours), sum(z3[e].x for e in parcours)
 

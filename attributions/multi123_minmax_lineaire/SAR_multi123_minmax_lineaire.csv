@@ -1,0 +1,31 @@
+parcours,num,choix retenus,UE1,UE2,UE3,UE4,UE5,UE6,UE7,UE8
+SAR,134,1 2 8 9,pnl_td1,srcs_td1,sftr_td1,sas_td1,,,,
+SAR,135,1 2 3 4 5 6 7,anglais__td1,conferences_td1,projet(3)_td1,ar_td1,pnl_td1,sas_td1,sftr_td1,
+SAR,136,1 2 3 4 5 6 7,anglais__td1,conferences_td1,projet(3)_td1,pnl_td1,sas_td1,sftr_td1,srcs_td1,
+SAR,137,1 2 3 4 5 6 7 8,anglais__td1,conferences_td1,projet(3)_td1,pnl_td1,ar_td1,sftr_td1,fpga_td1,multi_td1
+SAR,138,1 2 3 4 5 6 7,anglais__td1,conferences_td1,projet(3)_td1,sas_td1,sftr_td1,ar_td1,srcs_td1,
+SAR,139,1 2 3 4 5 6 7 8,anglais__td1,conferences_td1,projet(3)_td1,multi_td1,pnl_td1,sftr_td1,sas_td1,ar_td1
+SAR,140,1 2 3 4 5 6 7,anglais__td1,conferences_td1,projet(3)_td1,pnl_td1,multi_td1,ar_td1,sas_td1,
+SAR,141,1 2 3 4 5 6 7,anglais__td1,conferences_td1,projet(3)_td1,ar_td1,pnl_td1,sas_td1,sftr_td1,
+SAR,142,1 2 3 4 5 6 7 8,anglais__td1,conferences_td1,projet(3)_td1,sam_td1,sftr_td1,ar_td1,pnl_td1,multi_td1
+SAR,143,1 2 3 4 5 6 7,anglais__td1,conferences_td1,projet(3)_td1,pnl_td1,srcs_td1,ar_td1,sftr_td1,
+SAR,144,1 2 3 4 5 6 7,anglais__td1,conferences_td1,projet(3)_td1,pnl_td1,ioc_td1,ar_td1,srcs_td1,
+SAR,145,1 2 3 4 5 6 7,anglais__td1,conferences_td1,projet(3)_td1,pnl_td1,ioc_td1,sas_td1,ar_td1,
+SAR,146,1 2 3 4 5 6 7,anglais__td1,conferences_td1,projet(3)_td1,ar_td1,sftr_td1,srcs_td1,sas_td1,
+SAR,147,1 2 3 4 5 6 7,anglais__td1,conferences_td1,projet(3)_td1,pnl_td1,sas_td1,srcs_td1,ioc_td1,
+SAR,148,1 2 3 4 5 6 7,anglais__td1,conferences_td1,projet(3)_td1,pnl_td1,sftr_td1,sas_td1,srcs_td1,
+SAR,149,1 2 3 4 5 6 7,anglais__td1,conferences_td1,projet(3)_td1,pnl_td1,srcs_td1,ar_td1,ioc_td1,
+SAR,150,1 2 3 4 5 6 7,anglais__td1,conferences_td1,projet(3)_td1,pnl_td1,sftr_td1,sas_td1,ar_td1,
+SAR,151,1 2 3 4 5 6 10,anglais__td1,conferences_td1,projet(3)_td1,srcs_td1,pnl_td1,sas_td1,sftr_td1,
+SAR,152,1 2 3 4 5 6 7,anglais__td1,conferences_td1,projet(3)_td1,pnl_td1,srcs_td1,ar_td1,sas_td1,
+SAR,153,1 2 3 4 5 6 7,anglais__td1,conferences_td1,projet(3)_td1,pnl_td1,srcs_td1,ar_td1,sftr_td1,
+SAR,154,1 2 3 4 5 6 7,anglais__td1,conferences_td1,projet(3)_td1,pnl_td1,ar_td1,sas_td1,srcs_td1,
+SAR,155,1 2 3 4 5 6 7,anglais__td1,conferences_td1,projet(3)_td1,pnl_td1,ioc_td1,ar_td1,srcs_td1,
+SAR,156,1 2 3 4 5 6 7 8,anglais__td1,conferences_td1,projet(3)_td1,pnl_td1,srcs_td1,ar_td1,sas_td1,sam_td1
+SAR,157,1 2 3 4 5 6 7 8,anglais__td1,conferences_td1,projet(3)_td1,pnl_td1,srcs_td1,sas_td1,ar_td1,sftr_td1
+SAR,158,1 2 3 4 5 6 7,anglais__td1,conferences_td1,projet(3)_td1,pnl_td1,srcs_td1,sas_td1,ar_td1,
+SAR,159,1 2 3 4 5 6 7,anglais__td1,conferences_td1,projet(3)_td1,sam_td1,pnl_td1,sas_td1,srcs_td1,
+SAR,160,1 2 3 4 5 6 7,anglais__td1,conferences_td1,projet(3)_td1,sam_td1,pnl_td1,srcs_td1,sftr_td1,
+SAR,161,1 2 3 4 5 8 10,anglais__td1,conferences_td1,projet(3)_td1,pnl_td1,ar_td1,sas_td1,sftr_td1,
+SAR,162,1 2 3 4 5 6 7,anglais__td1,conferences_td1,projet(3)_td1,sam_td1,pnl_td1,sas_td1,srcs_td1,
+SAR,163,1 2 3 4 5 6 7 11,anglais__td1,conferences_td1,projet(3)_td1,pnl_td1,ar_td1,sftr_td1,srcs_td1,sas_td1

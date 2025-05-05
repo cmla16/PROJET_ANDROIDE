@@ -1,5 +1,6 @@
 from gurobipy import Model, GRB
 from data import data
+from data import data, attributions, stats
 
 def mono2_nbEtu_refus_parcours(path1, path2, path3, path4, path5, coverage):
 
@@ -24,11 +25,6 @@ def mono2_nbEtu_refus_parcours(path1, path2, path3, path4, path5, coverage):
     
     respecte_ects = {e: model.addVar(vtype=GRB.BINARY, name=f"respecte_ects_{e}") for e in parcours}
 
-
-    """
-    model.update()  # Si nécessaire, forcer la mise à jour du modèle
-    for (e, u, g), var in y.items():
-        print(var.VarName)"""
 
     #------------------------------------- Fonction objectif -------------------------------------#
 
@@ -61,11 +57,7 @@ def mono2_nbEtu_refus_parcours(path1, path2, path3, path4, path5, coverage):
                 name=f"nb_ue_parcours_refusée_{e}_empty"
             )
         
-    """
     # Contrainte: chaque étudiant doit avoir au plus 30 ECTS
-    for e in parcours:
-        model.addConstr(sum(ects[u] * x[e, u] for u in (ue_obligatoires[e] + ue_preferences[e])) == sum(ects[ue] for ue in (ue_obligatoires[e] + ue_cons[e])) - (3 if parcours[e] == "IMA" else 0), name=f"ects_{e}")
-    """
 
     nb_etudiants = len(parcours)
     M = 100  # assez grand pour désactiver la contrainte
@@ -144,49 +136,16 @@ def mono2_nbEtu_refus_parcours(path1, path2, path3, path4, path5, coverage):
     if model.status == GRB.INFEASIBLE:
         model.computeIIS()
         model.write("infeasible_model.ilp") 
+        print("Modèle infaisable")
+        return
 
 
     # Affichage des résultats
     if model.status == GRB.OPTIMAL:
-        for e in parcours:
-            print(f"Emploi du temps de {e} ({parcours[e]}) :")
-            for u in (ue_obligatoires[e] + ue_preferences[e]):
-                if(e,u) in x :
-                    if x[e, u].x > 0.5:
-                        print(f"  - {u} ({ects[u]} ECTS)")
-                        for g in groupes_td.get(u, []):
-                            if(e, u, g) in y : 
-                                if y[e, u, g].x > 0.5:
-                                    print(f"    -> Groupe {g}")
+        attributions("mono2_nbEtu_refus_parcours", x, y, parcours, ue_obligatoires, ue_preferences, groupes_td)
+        stats("mono2_nbEtu_refus_parcours", parcours, None, z2, None)
 
-        """
-        # Initialiser un dictionnaire pour compter le nombre d'étudiants par groupe de TD pour chaque UE
-        compte_groupes_td_ue = {(u, g): 0 for e in parcours for u in (ue_obligatoires[e] + ue_preferences[e]) if u in groupes_td for g in groupes_td[u]}
-
-        # Comptabiliser les étudiants dans chaque groupe de TD pour chaque UE
-        for e in parcours:
-            for u in (ue_obligatoires[e] + ue_preferences[e]):
-                if u in groupes_td:
-                    for g in groupes_td[u]:
-                        if (e, u, g) in y and y[e, u, g].x > 0.5:  # Si l'étudiant e est dans le groupe g pour l'UE u
-                            compte_groupes_td_ue[(u, g)] += 1
-
-        # Afficher le nombre d'étudiants dans chaque groupe de TD pour chaque UE
-        for (u, g), count in compte_groupes_td_ue.items():
-            print(f"UE {u} - Groupe {g} : {count} étudiant(s)")
-        """
-
-        #Affiche nb ue du parcours refusé 
-        count_etu=0
-
-        for e in parcours:
-            if z2[e].x>0.5:
-                count_etu+=1
-                print(f"L'étudiant {e} n'a pas eu au moins une ue de parcours dans ses premiers voeux")
-
-        print(f"Valeur de la fonction objectif 2 : {count_etu}")
-
-    return model.ObjVal
+        return model.ObjVal
 
 if __name__ == "__main__":
     mono2_nbEtu_refus_parcours(

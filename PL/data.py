@@ -1,4 +1,7 @@
 import pandas as pd
+import csv
+from collections import defaultdict
+import os
 
 def data(path1, path2, path3, path4, path5, verbose=False):
     #datasets
@@ -237,9 +240,74 @@ def data(path1, path2, path3, path4, path5, verbose=False):
     return parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours, ue_incompatibles
 
 
+def attributions(nom, x, y, parcours, ue_obligatoires, ue_preferences, groupes_td):
+    output_dir = f"../attributions/{nom}"
+    os.makedirs(output_dir, exist_ok=True)
+
+    lignes_parcours = defaultdict(list)
+
+    for i, e in enumerate(parcours, start=1):
+        ues_attribuees = []
+        choix_retenus = []
+
+        place = 0
+        for u in (ue_obligatoires[e] + ue_preferences[e]):
+            place += 1
+            if (e, u) in x and x[e, u].x > 0.5:
+                groupe = ""
+                for g in groupes_td.get(u, []):
+                    if (e, u, g) in y and y[e, u, g].x > 0.5:
+                        groupe = str(g)
+                        break
+                ue_avec_groupe = u + "_" + groupe
+                ues_attribuees.append(ue_avec_groupe)
+
+                choix_retenus.append(str(place))
+
+        while len(ues_attribuees) < 8:
+            ues_attribuees.append("")
+
+        ligne = [parcours[e], i, " ".join(choix_retenus)] + ues_attribuees
+        lignes_parcours[parcours[e]].append(ligne)
+
+    for p, lignes in lignes_parcours.items():
+        with open(os.path.join(output_dir, f"{p}_{nom}.csv"), "w", newline="") as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(["parcours", "num", "choix retenus", "UE1", "UE2", "UE3", "UE4", "UE5", "UE6", "UE7", "UE8"])
+            for ligne in lignes:
+                writer.writerow(ligne)
+
+def stats(nom, parcours, z1, z2, z3):
+    output_dir = f"../statistiques"
+    os.makedirs(output_dir, exist_ok=True)
+
+    stats = defaultdict(lambda: {"z1": 0, "z2": 0, "z3": 0})
+
+    for e in parcours:
+        p = parcours[e]
+        if z1!= None and z1[e].x > 0.5:
+            stats[p]["z1"] += 1
+        elif z1 == None:
+            stats[p]["z1"] = 'NaN'
+        if z2!= None and z2[e].x > 0.5:
+            stats[p]["z2"] += 1
+        elif z2 == None:
+            stats[p]["z2"] = 'NaN'
+        if z3!= None and z3[e].x > 0.5:
+            stats[p]["z3"] += 1
+        elif z3 == None:
+            stats[p]["z3"] = 'NaN'
+
+    with open(os.path.join(output_dir, f"{nom}.csv"), "w", newline="") as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(["parcours", "étudiant qui n'ont pas eu au moins un voeux", "ue du parcours refusé", "étudiant sans edt"])
+        for p in stats:
+            writer.writerow([p, stats[p]["z1"], stats[p]["z2"], stats[p]["z3"]])
+
+
 if __name__ == "__main__":
     data(
-        "./../data/voeux2024_v5.csv",
+        "./../data/voeux2024_v4.csv",
         "./../data/EDT_M1S2_2024_v6_avec_ects.csv",
         "./../data/ues_parcours.csv",
         "./../data/nb_ue_hors_parcours.csv",

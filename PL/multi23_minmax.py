@@ -1,5 +1,5 @@
 from gurobipy import Model, GRB
-from data import data
+from data import data, attributions, stats
 from mono2_nbEtu_refus_parcours import mono2_nbEtu_refus_parcours
 from mono3_nbEtu_sans_edt import mono3_nbEtu_sans_edt
 
@@ -146,33 +146,17 @@ def multi23_minmax(path1, path2, path3, path4, path5, epsilon, lambda2, lambda3)
 
 
     # Affichage des résultats
+    if model.status == GRB.INFEASIBLE:
+        model.computeIIS()
+        model.write("infeasible_model.ilp")
+        print("modèle infaisable")
+        return 
+
+
+    # Affichage des résultats
     if model.status == GRB.OPTIMAL:
-
-        #Affiche nb ue du parcours refusé 
-        count_etu=0
-
-        for e in parcours:
-            if z2[e].x>0.5:
-                count_etu+=1
-                print(f"L'étudiant {e} n'a pas eu au moins une ue de parcours dans ses premiers voeux")
-
-        print(f"Valeur de la fonction objectif 2 : {count_etu}")
-
-        #Affiche les étudiants sans EDT valide 
-        count_etu=0
-
-        for e in parcours:
-            nb_ects = sum(ects[u] * x[e, u].x for u in (ue_obligatoires[e] + ue_preferences[e]))
-
-            if z3[e].x>0.5:
-
-                count_etu+=1
-                print(f"L'étudiant {e} n'a pas d'edt valide : {int(nb_ects)} ECTS et {ec[e].x} ECTS manquants")
-
-
-        print(f"Valeur fonction objectif 3 : {count_etu}")
-
-        print(f"Valeur fonction objectif z : {z.x}")
+        attributions("multi23_minmax", x, y, parcours, ue_obligatoires, ue_preferences, groupes_td)
+        stats("multi23_minmax", parcours, None, z2, z3)
 
         nb_z2 = sum(1 for e in parcours if z2[e].x > 0.5)
         nb_z3 = sum(1 for e in parcours if z3[e].x > 0.5)

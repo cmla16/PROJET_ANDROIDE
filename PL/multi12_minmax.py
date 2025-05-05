@@ -1,5 +1,5 @@
 from gurobipy import Model, GRB
-from data import data
+from data import data, attributions, stats
 from mono1_nbEtu_voeux_insatisfaits import mono1_nbEtu_voeux_insatisfaits
 from mono2_nbEtu_refus_parcours import mono2_nbEtu_refus_parcours
 
@@ -150,32 +150,14 @@ def multi12_minmax(path1, path2, path3, path4, path5, epsilon, lambda1, lambda2,
     if model.status == GRB.INFEASIBLE:
         model.computeIIS()
         model.write("infeasible_model.ilp")
-        print("Modèle 12_minmax infaisable !!! ") 
+        print("modèle infaisable")
+        return 
 
 
     # Affichage des résultats
     if model.status == GRB.OPTIMAL:
-
-        #Affiche le nombre d'étudiant qui n'ont pas eu au moins un voeux
-        nb_etu = 0
-        for e in parcours:
-            if z1[e].x > 0.5:
-                nb_etu += 1
-                print(f"L'étudiant {e} n'a pas eu au moins une UE dans ses premiers choix.")
-        
-        print(f"Valeur de la fonction objectif 1 : {nb_etu}")
-
-        #Affiche nb ue du parcours refusé 
-        count_etu=0
-
-        for e in parcours:
-            if z2[e].x>0.5:
-                count_etu+=1
-                print(f"L'étudiant {e} n'a pas eu au moins une ue de parcours dans ses premiers voeux")
-
-        print(f"Valeur de la fonction objectif 2 : {count_etu}")
-
-        print(f"Valeur fonction objectif z : {z.x}")
+        attributions("multi12_minmax", x, y, parcours, ue_obligatoires, ue_preferences, groupes_td)
+        stats("multi12_minmax", parcours, z1, z2, None)
 
         nb_z1 = sum(1 for e in parcours if z1[e].x > 0.5)
         nb_z2 = sum(1 for e in parcours if z2[e].x > 0.5)

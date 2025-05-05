@@ -1,5 +1,5 @@
 from gurobipy import Model, GRB
-from data import data
+from data import data, attributions, stats
 
 
 def multi123_lexico(path1, path2, path3, path4, path5, ordre_optimisation):
@@ -39,7 +39,6 @@ def multi123_lexico(path1, path2, path3, path4, path5, ordre_optimisation):
         'z2': z2,
         'z3': z3
     }
-
 
 
     #------------------------------------- Contraintes -------------------------------------#
@@ -155,45 +154,14 @@ def multi123_lexico(path1, path2, path3, path4, path5, ordre_optimisation):
     if model.status == GRB.INFEASIBLE:
         model.computeIIS()
         model.write("infeasible_model.ilp")
-        print("Modèle 123_lexico infaisable !!!") 
-        return
+        print("modèle infaisable")
+        return 
 
 
     # Affichage des résultats
     if model.status == GRB.OPTIMAL:
-
-        #Affiche le nombre d'étudiant qui n'ont pas eu au moins un voeux
-        nb_etu = 0
-        for e in parcours:
-            if z1[e].x > 0.5:
-                nb_etu += 1
-                print(f"L'étudiant {e} n'a pas eu au moins une UE dans ses premiers choix.")
-        
-        print(f"Valeur de la fonction objectif 1 : {nb_etu}")
-
-        #Affiche nb ue du parcours refusé 
-        count_etu=0
-
-        for e in parcours:
-            if z2[e].x>0.5:
-                count_etu+=1
-                print(f"L'étudiant {e} n'a pas eu au moins une ue de parcours dans ses premiers voeux")
-
-        print(f"Valeur de la fonction objectif 2 : {count_etu}")
-
-        #Affiche les étudiants sans EDT valide 
-        count_etu=0
-
-        for e in parcours:
-            nb_ects = sum(ects[u] * x[e, u].x for u in (ue_obligatoires[e] + ue_preferences[e]))
-
-            if z3[e].x>0.5:
-
-                count_etu+=1
-                print(f"L'étudiant {e} n'a pas d'edt valide : {int(nb_ects)} ECTS et {ec[e].x} ECTS manquants")
-
-
-        print(f"Valeur fonction objectif 3 : {count_etu}")
+        attributions("multi123_lexico", x, y, parcours, ue_obligatoires, ue_preferences, groupes_td)
+        stats("multi123_lexico", parcours, z1, z2, z3)
 
         return sum(z1[e].x for e in parcours), sum(z2[e].x for e in parcours), sum(z3[e].x for e in parcours)
 

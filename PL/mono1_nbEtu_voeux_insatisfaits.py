@@ -1,5 +1,5 @@
 from gurobipy import Model, GRB
-from data import data
+from data import data, attributions, stats
 
 def mono1_nbEtu_voeux_insatisfaits(path1, path2, path3, path4, path5, coverage):
 
@@ -23,34 +23,18 @@ def mono1_nbEtu_voeux_insatisfaits(path1, path2, path3, path4, path5, coverage):
 
     respecte_ects = {e: model.addVar(vtype=GRB.BINARY, name=f"respecte_ects_{e}") for e in parcours}
 
-    """
-    model.update()  # Si nécessaire, forcer la mise à jour du modèle
-    for (e, u, g), var in y.items():
-        print(var.VarName)"""
-
     #------------------------------------- Fonction objectif -------------------------------------#
 
     model.setObjective(sum(z1[e] for e in parcours), GRB.MINIMIZE)
 
-
     #------------------------------------- Contraintes -------------------------------------#
-
 
     # contrainte pour définir z1_e
     for e in parcours:
         if ue_cons[e]:  # éviter les cas où ue_cons[e] est vide
             model.addConstr(z1[e] >= 1 - sum(x[e, u] for u in ue_cons[e]) / len(ue_cons[e]), name=f"z1_def_{e}")
 
-
-
-    # Contrainte: chaque étudiant doit avoir au plus 30 ECTS
-    """for e in parcours:
-        model.addConstr(sum(ects[u] * x[e, u] for u in (ue_obligatoires[e] + ue_preferences[e])) == sum(ects[ue] for ue in (ue_obligatoires[e] + ue_cons[e])) - (3 if parcours[e] == "IMA" else 0), name=f"ects_{e}")
-
-    """
-    
-
-    
+    # contrainte nb ects
     nb_etudiants = len(parcours)
     M = 100  # assez grand pour désactiver la contrainte
 
@@ -62,14 +46,10 @@ def mono1_nbEtu_voeux_insatisfaits(path1, path2, path3, path4, path5, coverage):
         model.addConstr(target_ects - total_ects <= (1-respecte_ects[e]) * M, name=f"ects_sup_{e}")
         model.addConstr(target_ects - total_ects >= (1-respecte_ects[e]) * -M, name=f"ects_sup_{e}")
         model.addConstr(target_ects - total_ects >= 0.01 - respecte_ects[e], name=f"ects_sup_{e}")
-        #model.addConstr(total_ects - target_ects >= respecte_ects[e] * M, name=f"ects_inf_{e}")
 
     # Contrainte globale : au moins 90 % des étudiants doivent respecter l'égalité
     model.addConstr(sum(respecte_ects[e] for e in parcours) >= coverage * nb_etudiants, name="min_90_percent_ects")
     
-    
-
-
     # Contrainte: UEs obligatoires
     for e in parcours:
         for u in ue_obligatoires.get(e, []):
@@ -127,48 +107,15 @@ def mono1_nbEtu_voeux_insatisfaits(path1, path2, path3, path4, path5, coverage):
 
     if model.status == GRB.INFEASIBLE:
         model.computeIIS()
-        model.write("infeasible_model.ilp") 
+        model.write("infeasible_model.ilp")
+        print("modèle infaisable")
+        return 
 
 
     # Affichage des résultats
     if model.status == GRB.OPTIMAL:
-        for e in parcours:
-            print(f"Emploi du temps de {e} ({parcours[e]}) :")
-            for u in (ue_obligatoires[e] + ue_preferences[e]):
-                if(e,u) in x :
-                    if x[e, u].x > 0.5:
-                        print(f"  - {u} ({ects[u]} ECTS)")
-                        for g in groupes_td.get(u, []):
-                            if(e, u, g) in y : 
-                                if y[e, u, g].x > 0.5:
-                                    print(f"    -> Groupe {g}")
-
-
-        """
-        # Initialiser un dictionnaire pour compter le nombre d'étudiants par groupe de TD pour chaque UE
-        compte_groupes_td_ue = {(u, g): 0 for e in parcours for u in (ue_obligatoires[e] + ue_preferences[e]) if u in groupes_td for g in groupes_td[u]}
-
-        # Comptabiliser les étudiants dans chaque groupe de TD pour chaque UE
-        for e in parcours:
-            for u in (ue_obligatoires[e] + ue_preferences[e]):
-                if u in groupes_td:
-                    for g in groupes_td[u]:
-                        if (e, u, g) in y and y[e, u, g].x > 0.5:  # Si l'étudiant e est dans le groupe g pour l'UE u
-                            compte_groupes_td_ue[(u, g)] += 1
-
-        # Afficher le nombre d'étudiants dans chaque groupe de TD pour chaque UE
-        for (u, g), count in compte_groupes_td_ue.items():
-            print(f"UE {u} - Groupe {g} : {count} étudiant(s)")
-        """
-
-        #Affiche le nombre d'étudiant qui n'ont pas eu au moins un voeux
-        nb_etu = 0
-        for e in parcours:
-            if z1[e].x > 0.5:
-                nb_etu += 1
-                print(f"L'étudiant {e} n'a pas eu au moins une UE dans ses premiers choix.")
-        
-        print(f"Valeur de la fonction objectif 1 : {nb_etu}")
+        attributions("mono1_nbEtu_voeux_insatisfaits", x, y, parcours, ue_obligatoires, ue_preferences, groupes_td)
+        stats("mono1_nbEtu_voeux_insatisfaits", parcours, z1, None, None)
     
     return model.ObjVal
 
@@ -178,5 +125,6 @@ if __name__ == "__main__":
         "./../data/EDT_M1S2_2024_v6_avec_ects.csv",
         "./../data/ues_parcours.csv",
         "./../data/nb_ue_hors_parcours.csv",
-        "./../data/ue_incompatibles.csv"
+        "./../data/ue_incompatibles.csv",
+        0.98
     )

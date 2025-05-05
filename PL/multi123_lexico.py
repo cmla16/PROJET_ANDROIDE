@@ -2,16 +2,9 @@ from gurobipy import Model, GRB
 from data import data
 
 
-def multi123_lexico(path1, path2, path3, path4, path5, obj1, obj2, obj3):
+def multi123_lexico(path1, path2, path3, path4, path5, ordre_optimisation):
 
     parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours, ue_incompatibles = data(path1, path2, path3, path4, path5)
-
-    # Liste de dictionnaires qui contient les variables
-    variables = {
-        'z1': z1,
-        'z2': z2,
-        'z3': z3
-    }
 
     # Modèle
     model = Model("Attribution en Master")
@@ -39,6 +32,13 @@ def multi123_lexico(path1, path2, path3, path4, path5, obj1, obj2, obj3):
     # nombre d'ects manquants pour avoir un contrat valide
     ec = {e: model.addVar(vtype=GRB.INTEGER, name=f"ec_{e}")
             for e in parcours}
+
+    # Liste de dictionnaires qui contient les variables
+    variables = {
+        'z1': z1,
+        'z2': z2,
+        'z3': z3
+    }
 
 
 
@@ -149,7 +149,7 @@ def multi123_lexico(path1, path2, path3, path4, path5, obj1, obj2, obj3):
         # Fixer la variable à son optimum
         model.addConstr(sum(var[e] for e in parcours) == val_obj)
 
-
+    model.optimize()
     model.write("model_debug.lp")
 
     if model.status == GRB.INFEASIBLE:

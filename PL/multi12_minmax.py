@@ -3,7 +3,7 @@ from data import data
 from mono1_nbEtu_voeux_insatisfaits import mono1_nbEtu_voeux_insatisfaits
 from mono2_nbEtu_refus_parcours import mono2_nbEtu_refus_parcours
 
-def multi12_minmax(path1, path2, path3, path4, path5, epsilon, lambda1, lambda2):
+def multi12_minmax(path1, path2, path3, path4, path5, epsilon, lambda1, lambda2, coverage):
 
     parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours, ue_incompatibles = data(path1, path2, path3, path4, path5)
 
@@ -88,7 +88,7 @@ def multi12_minmax(path1, path2, path3, path4, path5, epsilon, lambda1, lambda2)
         #model.addConstr(total_ects - target_ects >= respecte_ects[e] * M, name=f"ects_inf_{e}")
 
     # Contrainte globale : au moins 90 % des étudiants doivent respecter l'égalité
-    model.addConstr(sum(respecte_ects[e] for e in parcours) >= 0.98 * nb_etudiants, name="min_90_percent_ects")
+    model.addConstr(sum(respecte_ects[e] for e in parcours) >= coverage * nb_etudiants, name="min_90_percent_ects")
     
     
 
@@ -191,5 +191,6 @@ if __name__ == "__main__":
         "./../data/ue_incompatibles.csv",
         0.01,
         1,
-        1
+        1,
+        0.98
     )

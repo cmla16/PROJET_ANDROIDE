@@ -2,12 +2,18 @@ from gurobipy import Model, GRB
 from data import data
 
 
-def multi123_lexico(path1, path2, path3, path4, path5):
+def multi123_lexico(path1, path2, path3, path4, path5, obj1, obj2, obj3):
 
     parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours, ue_incompatibles = data(path1, path2, path3, path4, path5)
 
+    # Liste de dictionnaires qui contient les variables
+    variables = {
+        'z1': z1,
+        'z2': z2,
+        'z3': z3
+    }
+
     # Modèle
-    # Minimiser le nombre d'étudiant qui n'ont pas eu au moins un voeux
     model = Model("Attribution en Master")
 
     #------------------------------------- Variables de décision -------------------------------------#
@@ -128,26 +134,20 @@ def multi123_lexico(path1, path2, path3, path4, path5):
 
     #------------------------------------- Fonction objectif -------------------------------------#
 
-    # étape 1 : minimiser z3
-    model.setObjective(sum(z3[e] for e in parcours), GRB.MINIMIZE)
-    model.optimize()
-    val_obj_z3 = model.ObjVal
-
-    # fixer z3 à son optimum
-    model.addConstr(sum(z3[e] for e in parcours) == val_obj_z3)
-
-    # étape 2 : minimiser z1
-    model.setObjective(sum(z1[e] for e in parcours), GRB.MINIMIZE)
-    model.optimize()
-    val_obj_z1 = model.ObjVal
-
-    # fixer z1 à son optimum
-    model.addConstr(sum(z1[e] for e in parcours) == val_obj_z1)
-
-    # étape 3 : minimiser z2
-    model.setObjective(sum(z2[e] for e in parcours), GRB.MINIMIZE)
-    model.optimize()
-
+    # Étapes d'optimisation dynamiques en fonction de l'ordre
+    for var_name in ordre_optimisation:
+        # Choisir la variable à minimiser
+        var = variables[var_name]
+        
+        # Étape : minimiser la variable
+        model.setObjective(sum(var[e] for e in parcours), GRB.MINIMIZE)
+        model.optimize()
+        
+        # Récupérer la valeur optimale de l'objectif
+        val_obj = model.ObjVal
+        
+        # Fixer la variable à son optimum
+        model.addConstr(sum(var[e] for e in parcours) == val_obj)
 
 
     model.write("model_debug.lp")
@@ -161,34 +161,6 @@ def multi123_lexico(path1, path2, path3, path4, path5):
 
     # Affichage des résultats
     if model.status == GRB.OPTIMAL:
-        for e in parcours:
-            print(f"Emploi du temps de {e} ({parcours[e]}) :")
-            for u in (ue_obligatoires[e] + ue_preferences[e]):
-                if(e,u) in x :
-                    if x[e, u].x > 0.5:
-                        print(f"  - {u} ({ects[u]} ECTS)")
-                        for g in groupes_td.get(u, []):
-                            if(e, u, g) in y : 
-                                if y[e, u, g].x > 0.5:
-                                    print(f"    -> Groupe {g}")
-
-
-        """
-        # Initialiser un dictionnaire pour compter le nombre d'étudiants par groupe de TD pour chaque UE
-        compte_groupes_td_ue = {(u, g): 0 for e in parcours for u in (ue_obligatoires[e] + ue_preferences[e]) if u in groupes_td for g in groupes_td[u]}
-
-        # Comptabiliser les étudiants dans chaque groupe de TD pour chaque UE
-        for e in parcours:
-            for u in (ue_obligatoires[e] + ue_preferences[e]):
-                if u in groupes_td:
-                    for g in groupes_td[u]:
-                        if (e, u, g) in y and y[e, u, g].x > 0.5:  # Si l'étudiant e est dans le groupe g pour l'UE u
-                            compte_groupes_td_ue[(u, g)] += 1
-
-        # Afficher le nombre d'étudiants dans chaque groupe de TD pour chaque UE
-        for (u, g), count in compte_groupes_td_ue.items():
-            print(f"UE {u} - Groupe {g} : {count} étudiant(s)")
-        """
 
         #Affiche le nombre d'étudiant qui n'ont pas eu au moins un voeux
         nb_etu = 0
@@ -226,10 +198,15 @@ def multi123_lexico(path1, path2, path3, path4, path5):
         return sum(z1[e].x for e in parcours), sum(z2[e].x for e in parcours), sum(z3[e].x for e in parcours)
 
 if __name__ == "__main__":
+
+    # L'ordre des variables à minimiser, spécifié en paramètre
+    ordre_optimisation = ['z3', 'z1', 'z2']
+
     multi123_lexico(
         "./../data/voeux2024_v4.csv",
         "./../data/EDT_M1S2_2024_v6_avec_ects.csv",
         "./../data/ues_parcours.csv",
         "./../data/nb_ue_hors_parcours.csv",
-        "./../data/ue_incompatibles.csv"
+        "./../data/ue_incompatibles.csv",
+        ordre_optimisation
     )

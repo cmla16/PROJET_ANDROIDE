@@ -6,6 +6,9 @@ import sys
 multi_123_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../multi_123'))
 sys.path.append(multi_123_path)
 
+output_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../output/img'))
+os.makedirs(output_dir, exist_ok=True)
+
 from multi123_lineaire import multi123_lineaire  # adapte selon ton fichier
 from multi123_minmax_lineaire import multi123_minmax_lineaire
 import numpy as np
@@ -47,22 +50,22 @@ def pareto_3D(weights, name, fonction):
         print(f"Résolution avec w1={w[0]}, w2={w[1]}, w3={w[2]}")
         if fonction == multi123_lineaire :
             z1, z2, z3 = fonction(
-                "./../data/voeux2024_v4.csv",
-                "./../data/EDT_M1S2_2024_v6_avec_ects.csv",
-                "./../data/ues_parcours.csv",
-                "./../data/nb_ue_hors_parcours.csv",
-                "./../data/ue_incompatibles.csv",
+                "./../../data/voeux2024_v4.csv",
+                "./../../data/EDT_M1S2_2024_v6_avec_ects.csv",
+                "./../../data/ues_parcours.csv",
+                "./../../data/nb_ue_hors_parcours.csv",
+                "./../../data/ue_incompatibles.csv",
                 w[0],
                 w[1],
                 w[2]
             )
         elif fonction == multi123_minmax_lineaire :
             z1, z2, z3 = fonction(
-                "./../data/voeux2024_v4.csv",
-                "./../data/EDT_M1S2_2024_v6_avec_ects.csv",
-                "./../data/ues_parcours.csv",
-                "./../data/nb_ue_hors_parcours.csv",
-                "./../data/ue_incompatibles.csv",
+                "./../../data/voeux2024_v4.csv",
+                "./../../data/EDT_M1S2_2024_v6_avec_ects.csv",
+                "./../../data/ues_parcours.csv",
+                "./../../data/nb_ue_hors_parcours.csv",
+                "./../../data/ue_incompatibles.csv",
                 0.01,
                 w[0],
                 w[1],
@@ -121,13 +124,24 @@ def pareto_3D(weights, name, fonction):
     ax.set_title("Front de Pareto - Optimisation 3 objectifs")
     ax.legend()
     plt.tight_layout()
-    plt.savefig(name)
+    filepath = os.path.join(output_dir, name)
+    plt.savefig(filepath)
     plt.show()
 
+if __name__ == "__main__":
 
+    #Test 
 
-#Test 
-#weight_sets = generate_weights()
-#pareto_3D(weight_sets, "../img/front_pareto_3D_minmax.png", multi123_minmax_lineaire)
-#pareto_3D(weight_sets, "../img/front_pareto_3D_minmax.png", multi123_lineaire)
+    weight_sets = [
+    (0.6, 0.3, 0.1),
+    (0.5, 0.3, 0.2),
+    (0.33, 0.33, 0.34),
+    (0.2, 0.5, 0.3),
+    (0.1, 0.6, 0.3),
+    ]
+
+    #weight_sets = generate_weights()
+
+    #pareto_3D(weight_sets, "../img/front_pareto_3D_minmax.png", multi123_minmax_lineaire)
+    #pareto_3D(weight_sets, "../img/front_pareto_3D_minmax.png", multi123_lineaire)
     

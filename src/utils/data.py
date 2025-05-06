@@ -316,10 +316,10 @@ def stats(nom, parcours, z1, z2, z3):
 
 if __name__ == "__main__":
     data(
-        "./../data/voeux2024_v4.csv",
-        "./../data/EDT_M1S2_2024_v6_avec_ects.csv",
-        "./../data/ues_parcours.csv",
-        "./../data/nb_ue_hors_parcours.csv",
-        "./../data/ue_incompatibles.csv",
+        "./../../data/voeux2024_v4.csv",
+        "./../../data/EDT_M1S2_2024_v6_avec_ects.csv",
+        "./../../data/ues_parcours.csv",
+        "./../../data/nb_ue_hors_parcours.csv",
+        "./../../data/ue_incompatibles.csv",
         verbose=True
     )

@@ -7,7 +7,7 @@ sys.path.append(utils_path)
 
 from data import data, attributions, stats
 
-def mono2_nbEtu_refus_parcours(path1, path2, path3, path4, path5, coverage):
+def mono2_nbEtu_refus_parcours(path1, path2, path3, path4, path5, coverage, multi_general=True):
 
     parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours, ue_incompatibles = data(path1, path2, path3, path4, path5)
 
@@ -147,8 +147,8 @@ def mono2_nbEtu_refus_parcours(path1, path2, path3, path4, path5, coverage):
 
     # Affichage des résultats
     if model.status == GRB.OPTIMAL:
-        attributions("mono2_nbEtu_refus_parcours", x, y, parcours, ue_obligatoires, ue_preferences, groupes_td)
-        stats("mono2_nbEtu_refus_parcours", parcours, None, z2, None)
+        attributions("mono2_nbEtu_refus_parcours", x, y, parcours, ue_obligatoires, ue_preferences, groupes_td, multi_general)
+        stats("mono2_nbEtu_refus_parcours", parcours, None, z2, None, multi_general)
 
         return model.ObjVal
 

@@ -1,6 +1,9 @@
 from gurobipy import Model, GRB
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import os
 import sys
+import numpy as np
 
 utils_path = os.path.abspath(os.path.join(os.path.dirname(__file__), './utils'))
 sys.path.append(utils_path)
@@ -30,9 +33,9 @@ def multi123_minmax_lineaire(path1, path2, path3, path4, path5,
 
     parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours, ue_incompatibles = data(path1, path2, path3, path4, path5)
 
-    OPT1 = mono1_nbEtu_voeux_insatisfaits(path1, path2, path3, path4, path5,0.98)
-    OPT2 = mono2_nbEtu_refus_parcours(path1, path2, path3, path4, path5,0.98)
-    OPT3 = mono3_nbEtu_sans_edt(path1, path2, path3, path4, path5)
+    OPT1 = mono1_nbEtu_voeux_insatisfaits(path1, path2, path3, path4, path5,0.98, multi_general=True)
+    OPT2 = mono2_nbEtu_refus_parcours(path1, path2, path3, path4, path5,0.98, multi_general=True)
+    OPT3 = mono3_nbEtu_sans_edt(path1, path2, path3, path4, path5, multi_general=True)
 
     # Modèle
     # Minimiser le nombre d'étudiant qui n'ont pas eu au moins un voeux
@@ -243,7 +246,7 @@ def multi123_minmax_lineaire(path1, path2, path3, path4, path5,
 
 if __name__ == "__main__":
 
-    """
+    
     #normal
     multi123_minmax_lineaire(
         "./../data/voeux2024_v4.csv",
@@ -256,7 +259,7 @@ if __name__ == "__main__":
         100,
         500
     )
-    """
+    
 
     """
     # relachement n2
@@ -291,7 +294,7 @@ if __name__ == "__main__":
     )
     """
 
-    
+    """
     # relachement capacité
     multi123_minmax_lineaire(
         "./../data/voeux2024_v4.csv",
@@ -320,4 +323,4 @@ if __name__ == "__main__":
         capacity = True,
         delta = 5
     )
-    
+    """

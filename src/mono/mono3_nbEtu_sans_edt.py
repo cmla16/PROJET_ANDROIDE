@@ -7,7 +7,7 @@ sys.path.append(utils_path)
 
 from data import data, attributions, stats
 
-def mono3_nbEtu_sans_edt(path1, path2, path3, path4, path5):
+def mono3_nbEtu_sans_edt(path1, path2, path3, path4, path5, multi_general=True):
 
     parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours, ue_incompatibles = data(path1, path2, path3, path4, path5)
 
@@ -115,8 +115,8 @@ def mono3_nbEtu_sans_edt(path1, path2, path3, path4, path5):
 
     # Affichage des résultats
     if model.status == GRB.OPTIMAL:
-        attributions("mono3_nbEtu_sans_edt", x, y, parcours, ue_obligatoires, ue_preferences, groupes_td)
-        stats("mono3_nbEtu_sans_edt", parcours, None, None, z3)
+        attributions("mono3_nbEtu_sans_edt", x, y, parcours, ue_obligatoires, ue_preferences, groupes_td, multi_general)
+        stats("mono3_nbEtu_sans_edt", parcours, None, None, z3, multi_general)
 
     return model.ObjVal
 

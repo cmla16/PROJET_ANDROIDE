@@ -2,10 +2,10 @@ from gurobipy import Model, GRB
 import os
 import sys
 
-utils_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../utils'))
+utils_path = os.path.abspath(os.path.join(os.path.dirname(__file__), './utils'))
 sys.path.append(utils_path)
 
-mono_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../mono'))
+mono_path = os.path.abspath(os.path.join(os.path.dirname(__file__), './mono'))
 sys.path.append(mono_path)
 
 from data import data, attributions, stats
@@ -246,11 +246,11 @@ if __name__ == "__main__":
 
     #normal
     multi123_minmax_lineaire(
-        "./../../data/voeux2024_v4.csv",
-        "./../../data/EDT_M1S2_2024_v6_avec_ects.csv",
-        "./../../data/ues_parcours.csv",
-        "./../../data/nb_ue_hors_parcours.csv",
-        "./../../data/ue_incompatibles.csv",
+        "./../data/voeux2024_v4.csv",
+        "./../data/EDT_M1S2_2024_v6_avec_ects.csv",
+        "./../data/ues_parcours.csv",
+        "./../data/nb_ue_hors_parcours.csv",
+        "./../data/ue_incompatibles.csv",
         1e-6,
         50,
         100,
@@ -260,11 +260,11 @@ if __name__ == "__main__":
     # relachement n2
     """
         multi123_minmax_lineaire(
-        "./../../data/voeux2024_v4.csv",
-        "./../../data/EDT_M1S2_2024_v6_avec_ects.csv",
-        "./../../data/ues_parcours.csv",
-        "./../../data/nb_ue_hors_parcours.csv",
-        "./../../data/ue_incompatibles.csv",
+        "./../data/voeux2024_v4.csv",
+        "./../data/EDT_M1S2_2024_v6_avec_ects.csv",
+        "./../data/ues_parcours.csv",
+        "./../data/nb_ue_hors_parcours.csv",
+        "./../data/ue_incompatibles.csv",
         1e-6,
         50,
         100,
@@ -275,11 +275,11 @@ if __name__ == "__main__":
     )
 
     multi123_minmax_lineaire(
-        "./../../data/voeux2024_v4.csv",
-        "./../../data/EDT_M1S2_2024_v6_avec_ects.csv",
-        "./../../data/ues_parcours.csv",
-        "./../../data/nb_ue_hors_parcours.csv",
-        "./../../data/ue_incompatibles.csv",
+        "./../data/voeux2024_v4.csv",
+        "./../data/EDT_M1S2_2024_v6_avec_ects.csv",
+        "./../data/ues_parcours.csv",
+        "./../data/nb_ue_hors_parcours.csv",
+        "./../data/ue_incompatibles.csv",
         1e-6,
         50,
         100,
@@ -294,11 +294,11 @@ if __name__ == "__main__":
     # relachement capacité
     """
     multi123_minmax_lineaire(
-        "./../../data/voeux2024_v4.csv",
-        "./../../data/EDT_M1S2_2024_v6_avec_ects.csv",
-        "./../../data/ues_parcours.csv",
-        "./../../data/nb_ue_hors_parcours.csv",
-        "./../../data/ue_incompatibles.csv",
+        "./../data/voeux2024_v4.csv",
+        "./../data/EDT_M1S2_2024_v6_avec_ects.csv",
+        "./../data/ues_parcours.csv",
+        "./../data/nb_ue_hors_parcours.csv",
+        "./../data/ue_incompatibles.csv",
         1e-6,
         50,
         100,
@@ -308,11 +308,11 @@ if __name__ == "__main__":
     )
 
     multi123_minmax_lineaire(
-        "./../../data/voeux2024_v4.csv",
-        "./../../data/EDT_M1S2_2024_v6_avec_ects.csv",
-        "./../../data/ues_parcours.csv",
-        "./../../data/nb_ue_hors_parcours.csv",
-        "./../../data/ue_incompatibles.csv",
+        "./../data/voeux2024_v4.csv",
+        "./../data/EDT_M1S2_2024_v6_avec_ects.csv",
+        "./../data/ues_parcours.csv",
+        "./../data/nb_ue_hors_parcours.csv",
+        "./../data/ue_incompatibles.csv",
         1e-6,
         50,
         100,

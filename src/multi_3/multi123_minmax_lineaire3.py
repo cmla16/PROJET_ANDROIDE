@@ -13,7 +13,20 @@ from mono1_nbEtu_voeux_insatisfaits import mono1_nbEtu_voeux_insatisfaits
 from mono2_nbEtu_refus_parcours import mono2_nbEtu_refus_parcours
 from mono3_nbEtu_sans_edt import mono3_nbEtu_sans_edt
 
-def multi123_minmax_lineaire(path1, path2, path3, path4, path5, epsilon, lambda1, lambda2, lambda3):
+
+#Variable globale pour stocker les groupes de TD/TME qui sont complets
+groupes_complets=[]
+compte_groupes_td_ue={}
+opt = 0
+
+def multi123_minmax_lineaire(path1, path2, path3, path4, path5, 
+                            epsilon, lambda1, lambda2, lambda3,
+                            relax_obj=None, mode=None, gap=0,
+                            capacity=False,delta=0):
+
+    global opt
+    global groupes_complets
+    global compte_groupes_td_ue
 
     parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours, ue_incompatibles = data(path1, path2, path3, path4, path5)
 
@@ -67,6 +80,16 @@ def multi123_minmax_lineaire(path1, path2, path3, path4, path5, epsilon, lambda1
     model.addConstr(z >= lambda1 * e1, name=f"linéariser_z1")
     model.addConstr(z >= lambda2 * e2, name=f"linéariser_z2")
     model.addConstr(z >= lambda3 * e3, name=f"linéariser_z3")
+
+    # Relacher 
+    if relax_obj is not None:
+        if mode == relax : 
+            if relax_obj2 == "z1":
+                model.addConstr(e1 <= opt - gap, name=f"relacher_z1")
+            elif relax_obj2 == "z2":
+                model.addConstr(e2 <= opt - gap, name=f"relacher_z2")
+            elif relax_obj2 == "z3":
+                model.addConstr(e3 <= opt - gap, name=f"relacher_z3")
 
 
     # contrainte pour définir z1_e
@@ -135,9 +158,22 @@ def multi123_minmax_lineaire(path1, path2, path3, path4, path5, epsilon, lambda1
             if u in groupes_td:
                 model.addConstr(sum(y[e, u, g] for g in groupes_td[u] if (e,u,g) in y) == x[e, u], name=f"td_choix_{e}_{u}")
 
-    # Contrainte: capacité des groupes de TD
-    for (u, g), cap in capacite_td.items():
-        model.addConstr(sum(y[e, u, g] for e in parcours if u in (ue_obligatoires[e] + ue_preferences[e]) and (e,u,g) in y) <= cap, name=f"capacite_td_{u}_{g}")
+    if capacity: #si TRUE on peut relacher la contrainte ---> augmenter de delta tous les groupes complets
+        for (u, g), cap in capacite_td.items():
+
+            if (u,g) in compte_groupes_td_ue and compte_groupes_td_ue[u,g]==cap: #Si le groupe est complet
+                model.addConstr(sum(y[e, u, g] for e in parcours if u in (ue_obligatoires[e] + ue_preferences[e]) and (e,u,g) in y) <= cap+delta, name=f"capacite_td_plus_{u}_{g}")
+            
+            else:
+                model.addConstr(sum(y[e, u, g] for e in parcours if u in (ue_obligatoires[e] + ue_preferences[e]) and (e,u,g) in y) <= cap, name=f"capacite_td_{u}_{g}")
+
+
+    else: #si on ne relache pas la contrainte de capacité
+
+        # Contrainte: capacité des groupes de TD
+        for (u, g), cap in capacite_td.items():
+            model.addConstr(sum(y[e, u, g] for e in parcours if u in (ue_obligatoires[e] + ue_preferences[e]) and (e,u,g) in y) <= cap, name=f"capacite_td_{u}_{g}")
+
 
 
     # Contraintes : UE hors parcours autorisée
@@ -168,14 +204,38 @@ def multi123_minmax_lineaire(path1, path2, path3, path4, path5, epsilon, lambda1
 
     # Affichage des résultats
     if model.status == GRB.OPTIMAL:
-        attributions("multi123_minmax_lineaire", x, y, parcours, ue_obligatoires, ue_preferences, groupes_td)
-        stats("multi123_minmax_lineaire", parcours, z1, z2, z3)
+        attributions("multi123_minmax_lineaire2", x, y, parcours, ue_obligatoires, ue_preferences, groupes_td)
+        stats("multi123_minmax_lineaire2", parcours, z1, z2, z3)
+
+        if relax_obj is not None:
+            if mode == collect:
+                if relax_obj1 == "z1":
+                    opt = (sum(z1[e].x for e in parcours) - OPT1) / max(OPT1, 1)
+                elif relax_obj1 == "z2":
+                    opt = (sum(z2[e].x for e in parcours) - OPT2) / max(OPT2, 1)
+                elif relax_obj1 == "z3":
+                    opt = (sum(z3[e].X for e in parcours) - OPT3) / max(OPT3, 1)
+        
+        # Initialiser un dictionnaire pour compter le nombre d'étudiants par groupe de TD pour chaque UE
+        #compte_groupes_td_ue = {(u, g): 0 for e in parcours for u in (ue_obligatoires[e] + ue_preferences[e]) if u in groupes_td for g in groupes_td[u]}
+        if not capacity :
+            # Comptabiliser les étudiants dans chaque groupe de TD pour chaque UE
+            for e in parcours:
+                for u in (ue_obligatoires[e] + ue_preferences[e]):
+                    if u in groupes_td:
+                        for g in groupes_td[u]:
+                            if (e, u, g) in y and y[e, u, g].x > 0.5:  # Si l'étudiant e est dans le groupe g pour l'UE u
+                                if (u,g) not in compte_groupes_td_ue:
+                                    compte_groupes_td_ue[(u, g)] = 1
+                                else:
+                                    compte_groupes_td_ue[(u, g)] += 1
 
         print(sum(z1[e].x for e in parcours), sum(z2[e].x for e in parcours), sum(z3[e].x for e in parcours), z.x)
 
         return sum(z1[e].x for e in parcours), sum(z2[e].x for e in parcours), sum(z3[e].x for e in parcours)
 
 if __name__ == "__main__":
+
     multi123_minmax_lineaire(
         "./../../data/voeux2024_v4.csv",
         "./../../data/EDT_M1S2_2024_v6_avec_ects.csv",
@@ -185,5 +245,22 @@ if __name__ == "__main__":
         1e-6,
         50,
         100,
-        500
+        500,
+        capacity = False,
+        delta = 5
     )
+
+    multi123_minmax_lineaire(
+        "./../../data/voeux2024_v4.csv",
+        "./../../data/EDT_M1S2_2024_v6_avec_ects.csv",
+        "./../../data/ues_parcours.csv",
+        "./../../data/nb_ue_hors_parcours.csv",
+        "./../../data/ue_incompatibles.csv",
+        1e-6,
+        50,
+        100,
+        500,
+        capacity = True,
+        delta = 5
+    )
+

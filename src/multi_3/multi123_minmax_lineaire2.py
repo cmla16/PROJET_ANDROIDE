@@ -76,12 +76,12 @@ def multi123_minmax_lineaire(path1, path2, path3, path4, path5,
 
     # Relacher 
     if relax_obj is not None:
-        if mode == relax : 
-            if relax_obj2 == "z1":
+        if mode == "relax" : 
+            if relax_obj == "z1":
                 model.addConstr(e1 <= opt - gap, name=f"relacher_z1")
-            elif relax_obj2 == "z2":
+            elif relax_obj == "z2":
                 model.addConstr(e2 <= opt - gap, name=f"relacher_z2")
-            elif relax_obj2 == "z3":
+            elif relax_obj == "z3":
                 model.addConstr(e3 <= opt - gap, name=f"relacher_z3")
 
 
@@ -188,13 +188,15 @@ def multi123_minmax_lineaire(path1, path2, path3, path4, path5,
         stats("multi123_minmax_lineaire2", parcours, z1, z2, z3)
 
         if relax_obj is not None:
-            if mode == collect:
-                if relax_obj1 == "z1":
+            if mode == "collect":
+                if relax_obj == "z1":
                     opt = (sum(z1[e].x for e in parcours) - OPT1) / max(OPT1, 1)
-                elif relax_obj1 == "z2":
+                elif relax_obj == "z2":
                     opt = (sum(z2[e].x for e in parcours) - OPT2) / max(OPT2, 1)
-                elif relax_obj1 == "z3":
+                elif relax_obj == "z3":
                     opt = (sum(z3[e].X for e in parcours) - OPT3) / max(OPT3, 1)
+
+        print(sum(z1[e].x for e in parcours), sum(z2[e].x for e in parcours), sum(z3[e].x for e in parcours), z.x)
 
         return sum(z1[e].x for e in parcours), sum(z2[e].x for e in parcours), sum(z3[e].x for e in parcours)
 
@@ -207,8 +209,8 @@ if __name__ == "__main__":
         "./../../data/nb_ue_hors_parcours.csv",
         "./../../data/ue_incompatibles.csv",
         1e-6,
-        100,
         50,
+        100,
         500,
         relax_obj="z1",
         mode="collect",
@@ -222,8 +224,8 @@ if __name__ == "__main__":
         "./../../data/nb_ue_hors_parcours.csv",
         "./../../data/ue_incompatibles.csv",
         1e-6,
-        100,
         50,
+        100,
         500,
         relax_obj="z1",
         mode="relax",

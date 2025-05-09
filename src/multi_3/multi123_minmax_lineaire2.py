@@ -17,7 +17,7 @@ opt = 0
 
 def multi123_minmax_lineaire(path1, path2, path3, path4, path5, 
                             epsilon, lambda1, lambda2, lambda3,
-                            relax_obj=None, gap=0):
+                            relax_obj=None, mode=None, gap=0):
 
     global opt
 
@@ -75,13 +75,14 @@ def multi123_minmax_lineaire(path1, path2, path3, path4, path5,
     model.addConstr(z >= lambda3 * e3, name=f"linéariser_z3")
 
     # Relacher 
-    if relax_obj != None:
-        if relax_obj == "z1":
-            model.addConstr(e1 <= opt - gap, name=f"relacher_z1")
-        elif relax_obj == "z2":
-            model.addConstr(e2 <= opt - gap, name=f"relacher_z2")
-        elif relax_obj == "z3":
-            model.addConstr(e3 <= opt - gap, name=f"relacher_z3")
+    if relax_obj is not None:
+        if mode == relax : 
+            if relax_obj2 == "z1":
+                model.addConstr(e1 <= opt - gap, name=f"relacher_z1")
+            elif relax_obj2 == "z2":
+                model.addConstr(e2 <= opt - gap, name=f"relacher_z2")
+            elif relax_obj2 == "z3":
+                model.addConstr(e3 <= opt - gap, name=f"relacher_z3")
 
 
     # contrainte pour définir z1_e
@@ -186,13 +187,14 @@ def multi123_minmax_lineaire(path1, path2, path3, path4, path5,
         attributions("multi123_minmax_lineaire2", x, y, parcours, ue_obligatoires, ue_preferences, groupes_td)
         stats("multi123_minmax_lineaire2", parcours, z1, z2, z3)
 
-        if relax_obj != None:
-            if relax_obj == "z1":
-                opt = (sum(z1[e].x for e in parcours) - OPT1) / max(OPT1, 1)
-            elif relax_obj == "z2":
-                opt = (sum(z2[e].x for e in parcours) - OPT2) / max(OPT2, 1)
-            elif relax_obj == "z3":
-                opt = (sum(z3[e].X for e in parcours) - OPT3) / max(OPT3, 1)
+        if relax_obj is not None:
+            if mode == collect:
+                if relax_obj1 == "z1":
+                    opt = (sum(z1[e].x for e in parcours) - OPT1) / max(OPT1, 1)
+                elif relax_obj1 == "z2":
+                    opt = (sum(z2[e].x for e in parcours) - OPT2) / max(OPT2, 1)
+                elif relax_obj1 == "z3":
+                    opt = (sum(z3[e].X for e in parcours) - OPT3) / max(OPT3, 1)
 
         return sum(z1[e].x for e in parcours), sum(z2[e].x for e in parcours), sum(z3[e].x for e in parcours)
 
@@ -209,6 +211,7 @@ if __name__ == "__main__":
         50,
         500,
         relax_obj="z1",
+        mode="collect",
         gap=0
     )
 
@@ -223,5 +226,6 @@ if __name__ == "__main__":
         50,
         500,
         relax_obj="z1",
-        gap=0.005
+        mode="relax",
+        gap=0.05
     )

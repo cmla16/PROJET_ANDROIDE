@@ -205,14 +205,14 @@ def multi123_minmax_lineaire(path1, path2, path3, path4, path5,
     # Affichage des résultats
     if model.status == GRB.OPTIMAL:
         if capacity:
-            attributions("multi123_minmax_lineaire_capacity", x, y, parcours, ue_obligatoires, ue_preferences, groupes_td)
-            stats("multi123_minmax_lineaire_capacity", parcours, z1, z2, z3)
+            attributions("multi123_minmax_lineaire_capacity", x, y, parcours, ue_obligatoires, ue_preferences, groupes_td, multi_general=True)
+            stats("multi123_minmax_lineaire_capacity", parcours, z1, z2, z3, multi_general=True)
         elif mode == "relax":
-            attributions("multi123_minmax_lineaire_2", x, y, parcours, ue_obligatoires, ue_preferences, groupes_td)
-            stats("multi123_minmax_lineaire_2", parcours, z1, z2, z3)
+            attributions("multi123_minmax_lineaire_2", x, y, parcours, ue_obligatoires, ue_preferences, groupes_td, multi_general=True)
+            stats("multi123_minmax_lineaire_2", parcours, z1, z2, z3, multi_general=True)
         else:
-            attributions("multi123_minmax_lineaire", x, y, parcours, ue_obligatoires, ue_preferences, groupes_td)
-            stats("multi123_minmax_lineaire", parcours, z1, z2, z3)
+            attributions("multi123_minmax_lineaire", x, y, parcours, ue_obligatoires, ue_preferences, groupes_td, multi_general=True)
+            stats("multi123_minmax_lineaire", parcours, z1, z2, z3, multi_general=True)
 
         if relax_obj is not None:
             if mode == "collect":
@@ -291,7 +291,7 @@ if __name__ == "__main__":
     )
     """
 
-    """
+    
     # relachement capacité
     multi123_minmax_lineaire(
         "./../data/voeux2024_v4.csv",
@@ -320,4 +320,4 @@ if __name__ == "__main__":
         capacity = True,
         delta = 5
     )
-    """
+    

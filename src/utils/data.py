@@ -249,8 +249,11 @@ def data(path1, path2, path3, path4, path5, verbose=False):
     return parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours, ue_incompatibles
 
 
-def attributions(nom, x, y, parcours, ue_obligatoires, ue_preferences, groupes_td):
-    output_dir = f"../../output/attributions/{nom}"
+def attributions(nom, x, y, parcours, ue_obligatoires, ue_preferences, groupes_td, multi_general=False):
+    if multi_general:
+        output_dir = f"../output/attributions/{nom}"
+    else:
+        output_dir = f"../../output/attributions/{nom}"
     os.makedirs(output_dir, exist_ok=True)
 
     lignes_parcours = defaultdict(list)
@@ -286,8 +289,11 @@ def attributions(nom, x, y, parcours, ue_obligatoires, ue_preferences, groupes_t
             for ligne in lignes:
                 writer.writerow(ligne)
 
-def stats(nom, parcours, z1, z2, z3):
-    output_dir = f"../../output/statistiques"
+def stats(nom, parcours, z1, z2, z3, multi_general=False):
+    if multi_general:
+        output_dir = f"../output/statistiques"
+    else:
+        output_dir = f"../../output/statistiques"
     os.makedirs(output_dir, exist_ok=True)
 
     stats = defaultdict(lambda: {"z1": 0, "z2": 0, "z3": 0})

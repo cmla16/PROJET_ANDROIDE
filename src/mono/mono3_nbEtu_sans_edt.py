@@ -7,7 +7,7 @@ sys.path.append(utils_path)
 
 from data import data, attributions, stats
 
-def mono3_nbEtu_sans_edt(path1, path2, path3, path4, path5, multi_general=True):
+def mono3_nbEtu_sans_edt(path1, path2, path3, path4, path5, multi_general=False):
 
     parcours, rang, ue_obligatoires, ue_cons, ue_preferences, ue_parcours, ects, incompatibilites_cm, groupes_td, incompatibilites_td, incompatibilites_cm_td, capacite_td, nb_ue_hors_parcours, ue_incompatibles = data(path1, path2, path3, path4, path5)
 

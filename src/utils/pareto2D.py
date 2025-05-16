@@ -226,7 +226,7 @@ def pareto_2D_1_3(weights,name, fonction):
 
 if __name__ == "__main__":
 
-    #weight_sets = generate_weights()
+    
 
     weight_sets = [
     (0.6, 0.3, 0.1),
@@ -235,15 +235,3 @@ if __name__ == "__main__":
     (0.2, 0.5, 0.3),
     (0.1, 0.6, 0.3),
     ]
-
-    #TEST : COMPARAISON z1 et z2
-    #pareto_2D_1_2(weight_sets,"Comparaison_lineaire_z1_&_z2.png", multi12_lineaire)
-    #pareto_2D_1_2(weight_sets,"Comparaison_minmax_z1_&_z2.png", multi12_minmax)
-
-    #TEST : COMPARAISON z2 et z3
-    #pareto_2D_2_3(weight_sets,"Comparaison_lineaire_z2_&_z3.png", multi23_lineaire)
-    #pareto_2D_2_3(weight_sets,"Comparaison_minmax_z2_&_z3.png", multi23_minmax)
-
-    #TEST : COMPARAISON z1 et z3
-    #pareto_2D_1_3(weight_sets,"Comparaison_lineaire_z1_&_z3.png", multi13_lineaire)
-    #pareto_2D_1_3(weight_sets,"Comparaison_minmax_z1_&_z3.png", multi13_minmax)

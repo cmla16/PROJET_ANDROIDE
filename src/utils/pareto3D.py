@@ -140,8 +140,4 @@ if __name__ == "__main__":
     (0.1, 0.6, 0.3),
     ]
 
-    #weight_sets = generate_weights()
-
-    #pareto_3D(weight_sets, "../img/front_pareto_3D_minmax.png", multi123_minmax_lineaire)
-    #pareto_3D(weight_sets, "../img/front_pareto_3D_minmax.png", multi123_lineaire)
     

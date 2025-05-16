@@ -290,11 +290,11 @@ if __name__ == "__main__":
     #===========================================================================================#
 
     #Décommenter ici pour appliquer la contrainte de relâchement sur les capacités des groupes
-    
+    """
     #==================OPTIMISATION AVEC RELÂCHEMENT DE CAPACITÉ================================#
 
     #Pour relâcher la contrainte sur les capacités des groupes, il faut faire en deux temps:
-    """
+    
     #Première optimisation sans relâchement pour connaître les groupes complets
     f1,f2,f3=multi123_minmax_lineaire(
     "./../data/voeux2024_v4.csv",
